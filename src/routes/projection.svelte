@@ -1,4 +1,4 @@
-<canvas id="canvas"></canvas>
+<canvas id="canvas" class="absolute top-0 left-0"></canvas>
 
 <script>
 import { onMount } from 'svelte/internal';
@@ -129,12 +129,3 @@ animate();
 
 });
 </script>
-
-<style>
-
-    canvas {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-    }
-</style>
