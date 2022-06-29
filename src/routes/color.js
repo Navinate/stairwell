@@ -1,8 +1,5 @@
 import redis from 'redis';
 
-let current = new Date();
-let time = current.getSeconds();
-
 let client = redis.createClient();
 client.on('connect', () => {
     console.log('connected to Redis');
@@ -13,9 +10,11 @@ client.on('error', (err) => {
 await client.connect();
 
 export async function get() {
-    let color = await client.RPOP('color');
+    let color = await client.LPOP('color');
     if (color == null ) {
         color = '#FFFFFF';
+    } else {
+        await client.RPUSH('color', color);
     }
     return {
         body: color
@@ -34,7 +33,7 @@ export async function post( {request} ) {
         };
     } else {
         let color = await "" + data.get('color');
-        await client.LPUSH('color', color);
+        await client.RPUSH('color', color);
         message = 'color added';
         return {
             status: 302,

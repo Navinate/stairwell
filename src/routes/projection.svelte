@@ -1,17 +1,15 @@
 <canvas id="canvas"></canvas>
 
 <script>
-    import { onMount } from 'svelte/internal';
-    onMount(async () => {
-        const THREE = await import('three');
-
-        const URL = 'http://localhost:3000/';
+import { onMount } from 'svelte/internal';
+onMount(async () => {
+const THREE = await import('three');
 
 //creation of the 3D scene
 const scene = new THREE.Scene();
 
 //how many chunks per axis (10 means 10x10 grid of squares, 100 total)
-const gridSize = 3;
+const gridSize = 10;
 
 //helper constants for math later relative to screen and grid size
 
@@ -60,13 +58,7 @@ let uniforms = {
 // creates the material for each space in the 2D material array to later be assigned to meshes
 for(let i = 0; i < materialArray.length; i++) {
 
-  //scale index to match 0-1 for color input
-  let red = (i * widthInterval) / width;
-
   for(let j = 0; j < materialArray[i].length; j++) {
-    
-    //scale index to match 0-1 for color input
-    let blue = (j * heightInterval) / height;
 
     //pulling data from json file
     //TODO: GRAB DATA FROM DATABASE ENDPOINT
@@ -115,7 +107,6 @@ for(let i = 0; i < materialArray.length; i++) {
 
 //resizes the renderer when window size changes
 function onWindowResize() {
-  
   width = window.innerWidth;
   height = window.innerHeight;
   widthInterval = width / gridSize;
@@ -136,10 +127,7 @@ function animate() {
 
 animate();
 
-
-
 });
-
 </script>
 
 <style>
