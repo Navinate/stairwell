@@ -75,7 +75,7 @@ for(let i = 0; i < materialArray.length; i++) {
     
     materialArray[i][j] = new THREE.MeshBasicMaterial(
       {
-        color: new THREE.Color('#' + color),
+        color: new THREE.Color(color),
         wireframe: false
       }
     );
