@@ -19,11 +19,12 @@ export async function get() {
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function post( {request} ) {
     let data = await request.formData();
+    console.log("data is "+data);
     let message = "error";
     if (await data.get('color') == null) {
         message = 'no color sent';
         return {
-            status: 400,
+            status: 200,
             body: message
         };
     } else {
@@ -31,7 +32,7 @@ export async function post( {request} ) {
         await client.LPUSH('color', color);
         message = 'color added';
         return {
-            status: 200,
+            status: 302,
             headers: {
                 location: './'
             },
