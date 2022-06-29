@@ -10,7 +10,7 @@ client.on('error', (err) => {
 await client.connect();
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
-export async function get( {params} ) {
+export async function post( {params} ) {
 
     console.log("" + params.pass);
 
