@@ -7,10 +7,16 @@ let client = redis.createClient();
 client.on('connect', () => {
     console.log('connected to Redis');
 });
+client.on('error', (err) => {
+    console.log('Redis Client Error', err)
+});
 await client.connect();
 
 export async function get() {
-    let color = await client.LINDEX('color', 0);
+    let color = await client.RPOP('color');
+    if (color == null ) {
+        color = '#FFFFFF';
+    }
     return {
         body: color
     };
@@ -19,7 +25,6 @@ export async function get() {
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export async function post( {request} ) {
     let data = await request.formData();
-    console.log("data is "+data);
     let message = "error";
     if (await data.get('color') == null) {
         message = 'no color sent';
