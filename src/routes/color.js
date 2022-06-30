@@ -10,12 +10,11 @@ client.on('error', (err) => {
 await client.connect();
 
 export async function get() {
-    let color = await client.LPOP('color');
-    if (color == null ) {
-        color = '#FFFFFF';
-    } else {
-        await client.RPUSH('color', color);
-    }
+    // pop color from redis stack (if no color, set to white);
+    let color = await client.LPOP('color') ?? '#FFFFFF';
+    //add color back to start of the stack (temporary function)
+    await client.RPUSH('color', color);
+    //return the color
     return {
         body: color
     };
