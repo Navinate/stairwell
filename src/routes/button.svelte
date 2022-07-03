@@ -10,8 +10,10 @@
     export let destination;
 </script>
 
-<button href="{destination}">
-    {buttonText}
+<button>
+    <a href="{destination}">
+        {buttonText}
+    </a>
 </button>
 
 <style>

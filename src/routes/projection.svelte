@@ -16,6 +16,8 @@ onMount(async () => {
 
   //how many chunks per axis (10 means 10x10 grid of squares, 100 total)
   const gridSize = 10;
+  //time between info add to visual
+  const cycleDelay = 250;
 
   //helper constants for math later relative to screen and grid size
   let width =  window.innerWidth;
@@ -143,7 +145,7 @@ onMount(async () => {
   setupThree();
   await initMaterials();
   createMesh();
-  setInterval(addColor, 1500);
+  setInterval(addColor, cycleDelay);
   animate();
 
 });

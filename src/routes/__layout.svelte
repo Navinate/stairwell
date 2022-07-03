@@ -25,11 +25,17 @@ import Button from './button.svelte';
 		--color-five: #FFD6BA;
 	}
 	
+	@media (min-width: 700) {
+		
+	}
+
 	nav {
 		background-color: var(--color-two);
 		width: 100vw;
 		padding: 1rem;
-	}
+		height: 3em;
+		font-size: 1em;
+		}
 
 	ul {
 		display: flex;
@@ -41,6 +47,5 @@ import Button from './button.svelte';
 		font-family: 'Gantari', cursive;
 		text-shadow: #555B6E 0.1rem 0.1rem;
 		font-weight: 700;
-		font-size: 5vw;
 	}
 </style>
