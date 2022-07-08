@@ -33,25 +33,7 @@ import Button from "./button.svelte";
     }
 
     #color {
-        @apply
-        w-20
-        h-20
-    }
-
-    .form-submit {
-        @apply
-        border 
-        border-indigo-500 
-        bg-indigo-500 
-        text-white 
-        rounded-md 
-        p-2 
-        m-2 
-        transition 
-        duration-500 
-        ease-in-out 
-        select-none 
-        hover:bg-indigo-600 
-        focus:outline-none 
+        width: 8rem;
+        height: 8rem;
     }
 </style>
