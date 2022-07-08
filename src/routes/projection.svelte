@@ -9,23 +9,6 @@ const THREE = await import('three');
 
 //time between info add to visual
 const cycleDelay = 500;
-const fadeSpeed = 0.001;
-
-//DECAL PRESETS
-let raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-const intersection = {
-  intersects: false,
-  point: new THREE.Vector3(),
-  normal: new THREE.Vector3()
-};
-// @ts-ignore
-const intersects = [];
-// @ts-ignore
-const decals = [];
-let position = new THREE.Vector3(0,0,0);
-const orientation = new THREE.Euler(0,0,0);
-const size = new THREE.Vector3( 10, 10, 10 );
 
 //creation of the 3D scene
 const scene = new THREE.Scene();
@@ -63,76 +46,14 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 }
 
-  //needs intersection.point and 
-async function addDecal() {
-  let x = Math.random() * (width-(width*0.2) + (width*0.2));
-  let y = Math.random() * (height-(height*0.2) + (height*0.2));
-  checkIntersection(x, y);
-  if ( intersection.intersects ) {
-    position.copy( intersection.point );
-    orientation.z = Math.random() * 2 * Math.PI;
-    const scale = 10 + Math.random() * ( 20 - 10 );
-    size.set( scale, scale, scale );
-    let color = new THREE.Color( await (await fetch('./color')).text() );
-    const material = new THREE.MeshBasicMaterial( { color: color } )
-    console.log(material.color);
-    const m = new THREE.Mesh(new DecalGeometry( meshObject, position, orientation, size ), material );
-    scene.add( m );
-    decals.push( m );
-  }
-
-  if(decals.length > 20) {
-    // @ts-ignore
-    scene.remove(decals.shift());
-  }
-}
-
-// @ts-ignore
-function checkIntersection( x, y ) {
-  if ( meshObject === undefined ) return;
-  mouse.x = ( x / window.innerWidth ) * 2 - 1;
-  mouse.y = - ( y / window.innerHeight ) * 2 + 1;
-  raycaster.setFromCamera( mouse, camera );
-  // @ts-ignore
-  raycaster.intersectObject( meshObject, false, intersects );
-  if ( intersects.length > 0 ) {
-    // @ts-ignore
-    const p = intersects[ 0 ].point;
-    intersection.point.copy( p );
-
-    // @ts-ignore
-    const n = intersects[ 0 ].face.normal.clone();
-    n.transformDirection( meshObject.matrixWorld );
-    n.multiplyScalar( 10 );
-    // @ts-ignore
-    n.add( intersects[ 0 ].point );
-
-    // @ts-ignore
-    intersection.normal.copy( intersects[ 0 ].face.normal );
-    intersection.intersects = true;
-
-    intersects.length = 0;
-
-  } else {
-    intersection.intersects = false;
-    console.log('miss');
-  }
-
-}
-
 //recursive function to re-render the scene every frame the browser renders 
 function animate() {
   requestAnimationFrame( animate );
-  meshObject.material.color.multiply(0x000000);
-  // @ts-ignore
-  decals.forEach( function ( d ) {
-    d.material.color.sub(new THREE.Color(fadeSpeed, fadeSpeed, fadeSpeed));
-  } );
   renderer.render(scene, camera);
 }
 
 //function calls
-setInterval(addDecal, cycleDelay);
+//setInterval(addDecal, cycleDelay);
 animate();
 
 });
