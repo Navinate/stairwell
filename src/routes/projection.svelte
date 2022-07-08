@@ -2,151 +2,138 @@
 
 <script>
 import { onMount } from 'svelte/internal';
+import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 
 onMount(async () => {
-  const THREE = await import('three');
+const THREE = await import('three');
 
-  //creation of the 3D scene
-  const scene = new THREE.Scene();
+//time between info add to visual
+const cycleDelay = 500;
+const fadeSpeed = 0.001;
 
-  //shader uniforms
-  let uniforms = {
-    time: { value: 1.0 }
-  };
+//DECAL PRESETS
+let raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const intersection = {
+  intersects: false,
+  point: new THREE.Vector3(),
+  normal: new THREE.Vector3()
+};
+// @ts-ignore
+const intersects = [];
+// @ts-ignore
+const decals = [];
+let position = new THREE.Vector3(0,0,0);
+const orientation = new THREE.Euler(0,0,0);
+const size = new THREE.Vector3( 10, 10, 10 );
 
-  //how many chunks per axis (10 means 10x10 grid of squares, 100 total)
-  const gridSize = 10;
-  //time between info add to visual
-  const cycleDelay = 250;
+//creation of the 3D scene
+const scene = new THREE.Scene();
+scene.add( new THREE.AmbientLight( 0x443333 ) );
 
-  //helper constants for math later relative to screen and grid size
-  let width =  window.innerWidth;
-  let height = window.innerHeight;
-  let widthInterval = width / gridSize;
-  let heightInterval = height / gridSize;
+const geometry = new THREE.PlaneGeometry(window.innerWidth,window.innerHeight,50,50);;
+const basicMatieral = new THREE.MeshBasicMaterial( { color: 0x000000 } );
+const meshObject = new THREE.Mesh( geometry, basicMatieral );
+scene.add( meshObject );
 
-  //creates the ortho camera to view the visual
-  const camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 1, 1000);
-  scene.add( camera );
+//helper constants for math later relative to screen and grid size
+let width =  window.innerWidth;
+let height = window.innerHeight;
 
-  //creates renderer and assigns the canvas from the DOM
-  const renderer = new THREE.WebGLRenderer(
-    {
-      canvas: document.querySelector('#canvas'),
-    }
-  );
+//creates the ortho camera to view the visual
+const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 1000 );
+// @ts-ignore
+camera.position.z = 120;
+scene.add( camera );
 
-  //creates the geometry template for all meshes later
-  const geometry = new THREE.PlaneGeometry(widthInterval, heightInterval, 1,1);
+//creates renderer and assigns the canvas from the DOM
+const renderer = new THREE.WebGLRenderer(
+  {
+    canvas: document.querySelector('#canvas'),
+  }
+);
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setSize( window.innerWidth, window.innerHeight );
 
-  // create 2D array to store material for each square
-  const materialArray = new Array(gridSize);
-  for(let i = 0; i < materialArray.length; i++) {
-    materialArray[i] = new Array(gridSize);
+//resizes the renderer when window size changes
+function onWindowResize() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  renderer.setSize( width, height );
+  camera.updateProjectionMatrix();
+}
+
+  //needs intersection.point and 
+async function addDecal() {
+  let x = Math.random() * (width-(width*0.2) + (width*0.2));
+  let y = Math.random() * (height-(height*0.2) + (height*0.2));
+  checkIntersection(x, y);
+  if ( intersection.intersects ) {
+    position.copy( intersection.point );
+    orientation.z = Math.random() * 2 * Math.PI;
+    const scale = 10 + Math.random() * ( 20 - 10 );
+    size.set( scale, scale, scale );
+    let color = new THREE.Color( await (await fetch('./color')).text() );
+    const material = new THREE.MeshBasicMaterial( { color: color } )
+    console.log(material.color);
+    const m = new THREE.Mesh(new DecalGeometry( meshObject, position, orientation, size ), material );
+    scene.add( m );
+    decals.push( m );
   }
 
-  //sets up Three.js settings and stuff
-  function setupThree() {
-    //sets renderer to display properly on device
-    renderer.setPixelRatio( 1 );//window.devicePixelRatio );
-    renderer.setSize( width, height );
-
-    //set coord origin to top left of screen and move camera back to make objects visible
+  if(decals.length > 20) {
     // @ts-ignore
-    camera.position.setZ(1);
+    scene.remove(decals.shift());
+  }
+}
+
+// @ts-ignore
+function checkIntersection( x, y ) {
+  if ( meshObject === undefined ) return;
+  mouse.x = ( x / window.innerWidth ) * 2 - 1;
+  mouse.y = - ( y / window.innerHeight ) * 2 + 1;
+  raycaster.setFromCamera( mouse, camera );
+  // @ts-ignore
+  raycaster.intersectObject( meshObject, false, intersects );
+  if ( intersects.length > 0 ) {
     // @ts-ignore
-    camera.position.setX(width/2);
+    const p = intersects[ 0 ].point;
+    intersection.point.copy( p );
+
     // @ts-ignore
-    camera.position.setY(-height/2);
+    const n = intersects[ 0 ].face.normal.clone();
+    n.transformDirection( meshObject.matrixWorld );
+    n.multiplyScalar( 10 );
+    // @ts-ignore
+    n.add( intersects[ 0 ].point );
+
+    // @ts-ignore
+    intersection.normal.copy( intersects[ 0 ].face.normal );
+    intersection.intersects = true;
+
+    intersects.length = 0;
+
+  } else {
+    intersection.intersects = false;
+    console.log('miss');
   }
 
-  // creates the material for each space in the 2D material array to later be assigned to meshes
-  async function initMaterials() {
-    for(let i = 0; i < materialArray.length; i++) {
-      for(let j = 0; j < materialArray[i].length; j++) {
+}
 
-        //create THREEJS material for the geometry
-        materialArray[i][j] = new THREE.MeshBasicMaterial(
-          {
-            color: new THREE.Color('#000000'),
-            wireframe: false
-          }
-        );
-        /*materialArray[i][j] = new THREE.ShaderMaterial( {
+//recursive function to re-render the scene every frame the browser renders 
+function animate() {
+  requestAnimationFrame( animate );
+  meshObject.material.color.multiply(0x000000);
+  // @ts-ignore
+  decals.forEach( function ( d ) {
+    d.material.color.sub(new THREE.Color(fadeSpeed, fadeSpeed, fadeSpeed));
+  } );
+  renderer.render(scene, camera);
+}
 
-          uniforms: uniforms,
-          vertexShader: document.getElementById( 'vertexShader' ).textContent,
-          fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-          wireframe: false
-        } ); 
-        */
-      }
-    }
-  }
-  //creates the meshes to be rendered by cycleing through the material array
-  function createMesh() {
-    for(let i = 0; i < materialArray.length; i++) {
-      for(let j = 0; j < materialArray[i].length; j++) {
-
-        //create the mesh and assigns the geometry and material
-        let plane = new THREE.Mesh( geometry, materialArray[i][j]);
-
-        //reposition the plane to its spaced out array index AND so the top left corner is on that coord
-        //this is to allign the grid with the viewport
-        // @ts-ignore
-        plane.position.x = i * widthInterval + (widthInterval / 2);
-        // @ts-ignore
-        plane.position.y = -j * heightInterval - (heightInterval / 2);
-
-        //add the plane to the rendered scene
-        scene.add( plane );
-      } 
-    }
-  }
-
-  async function addColor() {
-    
-        let i = Math.floor(Math.random() * materialArray.length);
-        let j = Math.floor(Math.random() * materialArray[0].length);
-
-        let color = await (await fetch('./color')).text();
-        console.log('added color: ' + color + ' to position (' + i + ',' + j + ')');
-
-        //create THREEJS material for the geometry
-        materialArray[i][j] = new THREE.MeshBasicMaterial(
-          {
-            color: new THREE.Color(color),
-            wireframe: false
-          }
-        );  
-        createMesh();
-  }
-
-  //resizes the renderer when window size changes
-  function onWindowResize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    widthInterval = width / gridSize;
-    heightInterval = height / gridSize;
-    renderer.setSize( width, height );
-    //renderer.render(scene, camera);
-  }
-
-  //recursive function to re-render the scene every frame the browser renders 
-  function animate() {
-    requestAnimationFrame( animate );
-
-    //updates time for the shader
-    uniforms[ 'time' ].value = performance.now() / 1000;
-    renderer.render(scene, camera);
-  }
-
-  //function calls
-  setupThree();
-  await initMaterials();
-  createMesh();
-  setInterval(addColor, cycleDelay);
-  animate();
+//function calls
+setInterval(addDecal, cycleDelay);
+animate();
 
 });
 </script>
