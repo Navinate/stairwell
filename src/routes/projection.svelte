@@ -1,11 +1,17 @@
 <script>
 	import { onMount } from 'svelte/internal';
+	import { WebGLRenderer } from 'three';
 
 	onMount(async () => {
 		const THREE = await import('three');
 
 		//time between info add to visual
 		const cycleDelay = 500;
+
+		let clear_buffers = 2;
+		let fbo_index = 0;
+
+		fbo_index = (fbo_index + 1) % 2;
 
 		let clock = new THREE.Clock();
 
@@ -17,7 +23,11 @@
 		let width = window.innerWidth;
 		let height = window.innerHeight;
 
-		let mousePos = new THREE.Vector2(500, 500);
+		let mousePos = new THREE.Vector3(0, 0, 1);
+		const vector = new THREE.Vector2();
+		const dpr = window.devicePixelRatio;
+		const textureSize = 128 * dpr;
+		let texture = new THREE.FramebufferTexture(width, height, THREE.RGBAFormat);
 
 		//creates the ortho camera to view the visual
 		const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
@@ -37,57 +47,130 @@
 
 		//SHADERS
 		const _VS = `
-      void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `;
-		const _FS = `
+			void main() {
+				gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+			}
+		`;
+		const sim_FS = `
+			uniform vec3 u_mouse;
+			uniform vec2 u_resolution;
+			uniform float u_time;
+			uniform sampler2D u_tex;
+			uniform int clear;
 
-      uniform vec2 u_mouse;
-      uniform vec2 u_resolution;
-      uniform float u_time;
+			//        start point | end point
+			float getDistance(vec2 sP, vec2 eP) {
+				float xDiff = (eP.x - sP.x) * (eP.x - sP.x);
+				float yDiff = (eP.y - sP.y) * (eP.y - sP.y);
+				return sqrt(xDiff + yDiff);
+			}
 
-      void main() {
-        vec2 uv = gl_FragCoord.xy/u_resolution.xy; 
+			void main() {
+				vec3 e = vec3(vec2(1.)/u_resolution,0.);
+				vec2 q = gl_FragCoord.xy/u_resolution;
+				vec4 c = texture2D(u_tex, q);
 
-        float l = u_time;
-        vec2 p = uv;
-        vec2 uv2 = p;
+				float p11 = c.y;
+		
+				float p10 = texture2D(u_tex, q-e.zy).x;
+				float p01 = texture2D(u_tex, q-e.xz).x;
+				float p21 = texture2D(u_tex, q+e.xz).x;
+				float p12 = texture2D(u_tex, q+e.zy).x;
+				
+				float d = 0.;
 
-        p.x -= (u_mouse.x * 0.001) - .5;
-        p.y += (u_mouse.y * 0.001) - 1.;
-        l = length(p);
-        uv2 += abs( sin( l * 10.0 - u_time) );
-        float point = 0.01 / length( mod(uv2 , 1.0) - 0.5 );
-        
-        vec3 c = vec3(point);
-        
-        gl_FragColor = vec4( c/l , u_time);
-      }
-    `;
+				// Mouse interaction:
+				if (u_mouse.z > 0.) {
+					d = length(u_mouse.xy - gl_FragCoord.xy);
+					d = smoothstep(1.5,.5,d);
+					d *= sin(u_time*(4.+(u_mouse.z-1.)*4.))*.5*(u_mouse.z);
+				}
+
+				// The actual propagation:
+				d += -p11 + (p10 + p01 + p21 + p12)*.5;
+				d *= .999; // small dampening
+
+				if (clear == 1) {
+					d = (length(gl_FragCoord.xy - res.xy*.5) < 3.) ? .2 : 0.;
+					//d = 0.;
+				}
+				
+				// Set new current state and shift previous state:
+				gl_FragColor = vec4(d,c.xyz);
+
+				float h = texture2D(tex, gl_FragCoord.xy/res).x;
+				float sh = .35-h;
+				vec3 c =
+					vec3(exp(pow(sh-.75,2.)*-10.),
+							exp(pow(sh-.50,2.)*-20.),
+							exp(pow(sh-.25,2.)*-10.));
+				gl_FragColor = vec4(c,1.);
+			}
+    	`;
+		const render_FS = `
+			uniform sampler2D render_tex;
+			uniform vec2 u_resolution;
+
+			void main() {
+				float h = texture2D(render_tex, gl_FragCoord.xy/u_resolution).x;
+				float sh = .35-h;
+				vec3 c =
+					vec3(exp(pow(sh-.75,2.)*-10.),
+							exp(pow(sh-.50,2.)*-20.),
+							exp(pow(sh-.25,2.)*-10.));
+				gl_FragColor = vec4(c,1.);
+			}
+		`;
+
 		//CREATE SHADER UNIFORMS
 		const uniforms = {
 			u_resolution: { value: new THREE.Vector2(width, height) },
 			u_mouse: { value: mousePos },
-			u_time: { value: 0.0 }
+			u_time: { value: 0.0 },
+			u_tex: { value: new THREE.Texture() },
+			render_tex: { value: texture },
+			clear: { value: clear_buffers > 0 ? 1 : 0 }
 		};
-		//CREATE BACKGROUND SHADER
-		const shaderMaterial = new THREE.ShaderMaterial({
+		//CREATE SIM SHADER
+		const simMaterial = new THREE.ShaderMaterial({
 			uniforms: uniforms,
 			vertexShader: _VS,
-			fragmentShader: _FS
+			fragmentShader: sim_FS
+		});
+		//CREATE RENDER SHADER
+		const renderMaterial = new THREE.ShaderMaterial({
+			uniforms: uniforms,
+			vertexShader: _VS,
+			fragmentShader: render_FS
 		});
 
-		//ADD BACKGROUND TO SCENE
+		//ADD SIM OBJECT
 		// @ts-ignore
-		const meshObject = new THREE.Mesh(geometry, shaderMaterial);
-		scene.add(meshObject);
+		const simObject = new THREE.Mesh(geometry, simMaterial);
+		scene.add(simObject);
+
+		//ADD RENDERED OBJECT
+		// @ts-ignore
+		const renderObject = new THREE.Mesh(geometry, renderMaterial);
+		scene.add(renderObject);
 
 		//recursive function to re-render the scene every frame the browser renders
 		function animate() {
 			requestAnimationFrame(animate);
 			const delta = 5 * clock.getDelta();
 			uniforms['u_time'].value += 0.2 * delta;
+
+			renderObject.visible = false;
+			simObject.visible = true;
+			renderer.clear();
+			vector.x = (window.innerWidth * dpr) / 2 - width / 2;
+			vector.y = (window.innerHeight * dpr) / 2 - height / 2;
+			renderer.copyFramebufferToTexture(vector, texture);
+			uniforms['render_tex'].value = texture;
+
+			simObject.visible = false;
+			renderObject.visible = true;
+
 			renderer.render(scene, camera);
 		}
 
@@ -96,9 +179,10 @@
 		animate();
 
 		//updating mouse pos uniforms
-		window.addEventListener('mousemove', (e) => {
+		window.addEventListener('mousedown', (e) => {
 			uniforms['u_mouse'].value.x = e.clientX;
 			uniforms['u_mouse'].value.y = e.clientY;
+			uniforms['u_mouse'].value.z = 1.0;
 		});
 
 		/* -------- HELPER FUNCTIONS -------- */
@@ -114,3 +198,9 @@
 </script>
 
 <canvas id="canvas" class="absolute top-0 left-0" />
+
+<style>
+	* {
+		user-select: none;
+	}
+</style>
