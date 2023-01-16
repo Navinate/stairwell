@@ -1,24 +1,40 @@
-* {
-  margin: 0px;
-  padding: 0px;
-  box-sizing: border-box;
-  overflow: hidden;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+
+#color-field {
+    border-radius: 50%;
+    height: 60px;
+    width: 60px;
+    border: none;
+    outline: none;
+    appearance: none;
 }
 
-body {
-  background-color: black;
+#color-field::-webkit-color-swatch-wrapper {
+    padding: 0;
 }
 
-
-#wrapper {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-flow: column wrap;
-  justify-content: center;
-  align-items: center;
+#color-field::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
 }
 
-#wrapper * {
-  margin: 5px;
+.slider {
+    appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #357fbb;
+    cursor: pointer;
 }

@@ -1,0 +1,26 @@
+{
+  "name": "stairwell",
+  "version": "1.0.0",
+  "description": "Main repo for Purdue StairWELL backend and user interaction",
+  "main": "form.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "start": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Navinate/stairwell.git"
+  },
+  "author": "Trey Cluff and Julian Triveri",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Navinate/stairwell/issues"
+  },
+  "homepage": "https://github.com/Navinate/stairwell#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.2.4",
+    "vite": "^4.0.4"
+  }
+}
