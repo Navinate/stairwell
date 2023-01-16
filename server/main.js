@@ -9,6 +9,8 @@ const io = require("socket.io")(http, {
   cors: { origin: "*" },
 });
 
+http.
+
 //we do a little bit of error checking
 client.on("error", (err) => console.log("Redis Client Error", err));
 async function init() {
