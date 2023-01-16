@@ -577,6 +577,10 @@ video {
   height: 1.25rem;
 }
 
+.h-full {
+  height: 100%;
+}
+
 .w-screen {
   width: 100vw;
 }
@@ -587,6 +591,22 @@ video {
 
 .w-24 {
   width: 6rem;
+}
+
+.max-w-lg {
+  max-width: 32rem;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
+}
+
+.max-w-2xl {
+  max-width: 42rem;
+}
+
+.max-w-xl {
+  max-width: 36rem;
 }
 
 .border-collapse {
@@ -663,6 +683,10 @@ video {
 
 .p-3 {
   padding: 0.75rem;
+}
+
+.pt-12 {
+  padding-top: 3rem;
 }
 
 .text-4xl {
