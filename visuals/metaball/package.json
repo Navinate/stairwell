@@ -1,0 +1,12 @@
+{
+  "name": "stairwell",
+  "version": "1.0.0",
+  "description": "",
+  "main": "metaballs.js",
+  "scripts": {
+    "start": "vite"
+  },
+  "dependencies": {
+    "vite": "^4.0.4"
+  }
+}
