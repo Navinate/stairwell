@@ -2,11 +2,7 @@
 const socket = io(); //LIVE SERVER
 console.log("connected to websocket");
 let sliders = document.querySelectorAll(".slider");
-sliders.forEach((slider) => {
-  slider.value = Math.random() * 100;
-});
-
-document.querySelector("#color-field").value = generateHexCode();
+randomizeForm();
 
 document.querySelector("#submit-button").onclick = () => {
   console.log("submitting data");
@@ -17,8 +13,14 @@ document.querySelector("#submit-button").onclick = () => {
   let d = sliders[3].value;
   let e = sliders[4].value;
   socket.emit("form to server", color, a, b, c, d, e);
+  randomizeForm();
 };
 
-function generateHexCode() {
-  return "#" + [...Array(6)].map(() => Math.floor(Math.random() * 16).toString(16)).join("");
+function randomizeForm() {
+  sliders.forEach((slider) => {
+    slider.value = Math.random() * 100;
+  });
+  //gen random hex code
+  document.querySelector("#color-field").value =
+    "#" + [...Array(6)].map(() => Math.floor(Math.random() * 16).toString(16)).join("");
 }

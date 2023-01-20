@@ -21,8 +21,8 @@ function draw() {
 
 socket.on("server to listener", (color, a, b, c, d, e) => {
   console.log("recieved data");
-  let size = map(a + b, 0, 200, 20, 100);
-  let maxSpeed = map(c + d + e, 0, 300, 2, 3);
+  let size = map(a + b, 0, 200, 2, 5);
+  let maxSpeed = map(c + d + e, 0, 300, 0.1, 1);
   balls.push(new Ball(color, size, maxSpeed));
 
   if (balls.length > 19) {

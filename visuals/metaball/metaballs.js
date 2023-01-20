@@ -188,8 +188,8 @@ const hex2rgb = (hex) => {
 socket.on("server to listener", (color, a, b, c, d, e) => {
   rgb = hex2rgb(color);
 
-  // a + 50 ranges between 50-150
-  createParticle(rgb.r / 255, rgb.g / 255, rgb.b / 255, a + 50);
+  // a/2+50 ranges between 50-100
+  createParticle(rgb.r / 255, rgb.g / 255, rgb.b / 255, a / 2 + 50);
   //keep number of balls at 15
   if (iNumParts > 15) {
     destroyOldestParticle();
