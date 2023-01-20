@@ -1,5 +1,3 @@
-const socket = io();
-
 // WHO5 Metaball
 
 /*** Create GL program ***/
@@ -18,8 +16,7 @@ gl.uniform1f(idCanvHeight, canvas.height);
 const idPartPos = gl.getUniformLocation(program, "partPos");
 const idNumParts = gl.getUniformLocation(program, "numParts");
 const idColors = gl.getUniformLocation(program, "colors");
-
-gl.uniform1ui(idNumParts, 0);
+const idRadii = gl.getUniformLocation(program, "radii");
 
 /*** Ball object ***/
 const fPartInitVel = 5;
@@ -35,7 +32,13 @@ let f3vColors = [];
 
 let iNumParts = 0;
 
-function createParticle(fr, fg, fb) {
+gl.uniform1fv(idRadii, f1vRadii);
+gl.uniform1ui(idNumParts, 0);
+
+function createParticle(fr, fg, fb, fRad) {
+  //just in case, delete particle if numparts goes above buffer
+  if (iNumParts > 256) destroyOldestParticle();
+
   iNumParts++;
 
   gl.uniform1ui(idNumParts, iNumParts);
@@ -45,9 +48,7 @@ function createParticle(fr, fg, fb) {
   // y
   f2vPositions.push(Math.random() * canvas.height);
 
-  // random initial direction
   const fRandRad = Math.random() * Math.PI * 2;
-
   // x velocity
   f2vVelocities.push(Math.cos(fRandRad) * fPartInitVel);
   // y vel
@@ -61,40 +62,29 @@ function createParticle(fr, fg, fb) {
   gl.uniform3fv(idColors, f3vColors);
 
   // radius
-  f1vRadii.push(50);
+  f1vRadii.push(fRad);
+  gl.uniform1fv(idRadii, f1vRadii);
 }
 
-//simple hexcode to rgb method
-const hex2rgb = (hex) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+function destroyOldestParticle() {
+  iNumParts--;
 
-  // return {r, g, b}
-  return { r, g, b };
-};
+  gl.uniform1ui(idNumParts, iNumParts);
 
-socket.on("server to listener", (color, a, b, c, d, e) => {
-  rgb = hex2rgb(color);
+  f2vPositions.shift();
+  f2vPositions.shift();
 
-  createParticle(rgb.r / 255, rgb.g / 255, rgb.b / 255);
-  if (iNumParts > 5) {
-    iNumParts--;
+  f2vVelocities.shift();
+  f2vVelocities.shift();
 
-    f2vPositions.shift();
-    f2vPositions.shift();
+  f3vColors.shift();
+  f3vColors.shift();
+  f3vColors.shift();
+  gl.uniform3fv(idColors, f3vColors);
 
-    f2vVelocities.shift();
-    f2vVelocities.shift();
-
-    f3vColors.shift();
-    f3vColors.shift();
-    f3vColors.shift();
-    gl.uniform3fv(idColors, f3vColors);
-
-    f1vRadii.shift();
-  }
-});
+  f1vRadii.shift();
+  gl.uniform1fv(idRadii, f1vRadii);
+}
 
 window.requestAnimationFrame(update);
 function update() {
@@ -177,8 +167,31 @@ function update() {
   window.requestAnimationFrame(update);
 }
 
-// add new cat
+/*** Socket ***/
+
+const socket = io();
+
+//simple hexcode to rgb method
+const hex2rgb = (hex) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+
+  // return {r, g, b}
+  return { r, g, b };
+};
 
 // for(let i = 0; i < 10; i++) {
-//     new ObjBall(new ObjEmotion(1, 1, 1, 1, 1));
+//   createParticle(1 - Math.random() * 0.5, 1 - Math.random() * 0.5, 1 - Math.random() * 0.5, (1 - Math.random() * 0.8) * 50);
 // }
+
+socket.on("server to listener", (color, a, b, c, d, e) => {
+  rgb = hex2rgb(color);
+
+  // a + 50 ranges between 50-150
+  createParticle(rgb.r / 255, rgb.g / 255, rgb.b / 255, a + 50);
+  //keep number of balls at 15
+  if (iNumParts > 15) {
+    destroyOldestParticle();
+  }
+});
