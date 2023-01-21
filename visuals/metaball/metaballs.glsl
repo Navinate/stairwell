@@ -2,7 +2,7 @@
 
 precision lowp float;
 
-uniform vec2[256] partPos;
+uniform vec2[256] positions;
 uniform vec3[256] colors;
 uniform float radii[256];
 uniform uint numParts;
@@ -18,12 +18,12 @@ void main(void) {
     fragColor = vec4(0, 0, 0, 1);
     for(uint i = 0u; i < numParts; i++)
     {
-        vec2 p = partPos[i];
+        vec2 p = positions[i];
 
         float rad = radii[i];
 
-        float dx = texCoord.x - partPos[i].x;
-        float dy = texCoord.y - partPos[i].y;
+        float dx = texCoord.x - positions[i].x;
+        float dy = texCoord.y - positions[i].y;
 
         float d = dx * dx + dy * dy;
 

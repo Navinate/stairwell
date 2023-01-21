@@ -6,192 +6,239 @@
 const program = createProgram(getFile("tri.glsl"), getFile("metaballs.glsl"));
 gl.useProgram(program);
 
-// locations
+// uniform locations
 const idCanvWidth = gl.getUniformLocation(program, "canvWidth");
 const idCanvHeight = gl.getUniformLocation(program, "canvHeight");
 
 gl.uniform1f(idCanvWidth, canvas.width);
 gl.uniform1f(idCanvHeight, canvas.height);
 
-const idPartPos = gl.getUniformLocation(program, "partPos");
-const idNumParts = gl.getUniformLocation(program, "numParts");
+const idPartPos = gl.getUniformLocation(program, "positions");
 const idColors = gl.getUniformLocation(program, "colors");
 const idRadii = gl.getUniformLocation(program, "radii");
+const idNumParts = gl.getUniformLocation(program, "numParts");
 
-/*** Ball object ***/
-const fPartInitVel = 5;
+/*** Particle data ***/
+let initialParticleSpeed = 5;
+let maxParticles = 256;
 
-const iPosVecSize = 2;
-let f2vPositions = [];
-const iVelVecSize = 2;
-let f2vVelocities = [];
-let f1vRadii = [];
+// particles aren't actually objects.
+// they're arrays instead to easily send to the gpu
+let particles = [];
+const posSize = 2;
+let positions = [];
+const velSize = 2;
+let velocities = [];
+let radii = [];
+const colorSize = 3;
+let colors = [];
 
-const iColorVecSize = 3;
-let f3vColors = [];
-
-let iNumParts = 0;
-
-gl.uniform1fv(idRadii, f1vRadii);
+gl.uniform1fv(idRadii, radii);
 gl.uniform1ui(idNumParts, 0);
 
-function createParticle(fr, fg, fb, fRad) {
-  //just in case, delete particle if numparts goes above buffer
-  if (iNumParts > 256) destroyOldestParticle();
+// helper class for managing arrays sent to gpu
+class Particle {
+  constructor(fr, fg, fb, fRad) {
 
-  iNumParts++;
+    // make sure max particles isn't exceeded
+    if (particles.length > maxParticles)
+      particles[particles.length - 1].destroy();
 
-  gl.uniform1ui(idNumParts, iNumParts);
+    this.index = particles.length;
 
-  // x
-  f2vPositions.push(Math.random() * canvas.width);
-  // y
-  f2vPositions.push(Math.random() * canvas.height);
+    particles.push(this);
 
-  const fRandRad = Math.random() * Math.PI * 2;
-  // x velocity
-  f2vVelocities.push(Math.cos(fRandRad) * fPartInitVel);
-  // y vel
-  f2vVelocities.push(Math.sin(fRandRad) * fPartInitVel);
+    gl.uniform1ui(idNumParts, particles.length);
+    // x
+    positions.push(Math.random() * canvas.width);
+    // y
+    positions.push(Math.random() * canvas.height);
 
-  // color r, g, & b
-  f3vColors.push(fr);
-  f3vColors.push(fg);
-  f3vColors.push(fb);
+    const fRandRad = Math.random() * Math.PI * 2;
+    // x velocity
+    velocities.push(Math.cos(fRandRad) * initialParticleSpeed);
+    // y vel
+    velocities.push(Math.sin(fRandRad) * initialParticleSpeed);
 
-  gl.uniform3fv(idColors, f3vColors);
+    // color r, g, & b
+    colors.push(fr);
+    colors.push(fg);
+    colors.push(fb);
 
-  // radius
-  f1vRadii.push(fRad);
-  gl.uniform1fv(idRadii, f1vRadii);
-}
+    gl.uniform3fv(idColors, colors);
 
-function destroyOldestParticle() {
-  iNumParts--;
+    // radius
+    radii.push(fRad);
+    gl.uniform1fv(idRadii, radii);
+  }
 
-  gl.uniform1ui(idNumParts, iNumParts);
+  destroy() {
+    // remove data from arrays
+    particles.splice(this.index);
+    positions.splice(this.posIndex, posSize);
+    velocities.splice(this.velIndex, velSize);
+    radii.splice(this.index, 1);
+    colors.splice(this.colorIndex, colorSize);
 
-  f2vPositions.shift();
-  f2vPositions.shift();
+    // update gpu data
+    gl.uniform1ui(idNumParts, particles.length);
+    gl.uniform3fv(idColors, colors);
+    gl.uniform1fv(idRadii, radii);
+  }
 
-  f2vVelocities.shift();
-  f2vVelocities.shift();
+  // position
+  set x(f) {
+    positions[this.index * posSize] = f;
+  }
 
-  f3vColors.shift();
-  f3vColors.shift();
-  f3vColors.shift();
-  gl.uniform3fv(idColors, f3vColors);
+  set y(f) {
+    positions[this.index * posSize + 1] = f;
+  }
 
-  f1vRadii.shift();
-  gl.uniform1fv(idRadii, f1vRadii);
+  setPos(fx, fy) {
+    this.x = fx;
+    this.y = fy;
+  }
+
+  get x() {
+    return positions[this.index * posSize];
+  }
+
+  get y() {
+    return positions[this.index * posSize + 1]
+  }
+
+  // velocity
+  set vx(f) {
+    velocities[this.index * velSize] = f;
+  }
+
+  set vy(f) {
+    velocities[this.index * velSize + 1] = f;
+  }
+
+  setVel(fvx, fvy) {
+    this.vx = fvx;
+    this.vy = fvy;
+  }
+
+  velStep() {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // constrain within screen
+    if (this.x < 0) {
+      this.vx = Math.abs(this.vx);
+    } else if (this.x > canvas.width) {
+      this.vx = -Math.abs(this.vx);
+    }
+
+    if (this.y < 0) {
+      this.vy = Math.abs(this.vy);
+    } else if (this.y > canvas.height) {
+      this.vy = -Math.abs(this.vy);
+    }
+  }
+
+  get vx() {
+    return velocities[this.index * velSize];
+  }
+
+  get vy() {
+    return velocities[this.index * velSize + 1]
+  }
+
+  // color - don't forget to send updated colors to gpu if you change them!
+  set r(fr) {
+    colors[this.index * colorSize] = fr;
+  }
+
+  set g(fg) {
+    colors[this.index * colorSize + 1] = fg;
+  }
+
+  set b(fb) {
+    colors[this.index * colorSize + 2] = fb;
+  }
+
+  setColor(fr, fg, fb) {
+    this.r = fr;
+    this.g = fg;
+    this.b = fb;
+  }
+
+  get r() {
+    return colors[this.index * colorSize];
+  }
+
+  get g() {
+    return colors[this.index * colorSize + 1];
+  }
+
+  get b() {
+    return colors[this.index * colorSize + 2];
+  }
+
+  // radius - don't forget to send updated radii array to gpu!
+  set radius(fr) {
+    radii[this.index] = fr;
+  }
+
+  get radius() {
+    return radii[this.index];
+  }
 }
 
 window.requestAnimationFrame(update);
+
 function update() {
-  for (let indexA = 0; indexA < iNumParts; indexA++) {
-    let indexAPosX = indexA * iPosVecSize;
-    let indexAPosY = indexA * iPosVecSize + 1;
-    let indexAVelX = indexA * iVelVecSize;
-    let indexAVelY = indexA * iVelVecSize + 1;
+  for (let i = 0; i < particles.length; i++) {
+    let iPart = particles[i];
 
-    f2vPositions[indexAPosX] += f2vVelocities[indexAVelX];
-    f2vPositions[indexAPosY] += f2vVelocities[indexAVelY];
+    iPart.velStep();
 
-    if (f2vPositions[indexAPosX] < 0) {
-      f2vVelocities[indexAPosX] = Math.abs(f2vVelocities[indexAPosX]);
-    } else if (f2vPositions[indexAPosX] > canvas.width) {
-      f2vVelocities[indexAPosX] = -Math.abs(f2vVelocities[indexAPosX]);
-    }
+    // handle collisions
+    for (let j = i + 1; j < particles.length; j++) {
+      let jPart = particles[j];
 
-    if (f2vPositions[indexAPosY] < 0) {
-      f2vVelocities[indexAPosY] = Math.abs(f2vVelocities[indexAPosY]);
-    } else if (f2vPositions[indexAPosY] > canvas.height) {
-      f2vVelocities[indexAPosY] = -Math.abs(f2vVelocities[indexAPosY]);
-    }
+      let xDif = iPart.x - jPart.x;
+      let yDif = iPart.y - jPart.y;
 
-    for (let indexB = indexA + 1; indexB < iNumParts; indexB++) {
-      let indexBPosX = indexB * iPosVecSize;
-      let indexBPosY = indexB * iPosVecSize + 1;
-      let indexBVelX = indexB * iVelVecSize;
-      let indexBVelY = indexB * iVelVecSize + 1;
-
-      let fPosDifX = f2vPositions[indexAPosX] - f2vPositions[indexBPosX];
-      let fPosDifY = f2vPositions[indexAPosY] - f2vPositions[indexBPosY];
-
-      let fDist = Math.sqrt(fPosDifX * fPosDifX + fPosDifY * fPosDifY);
+      let fDist = Math.sqrt(xDif * xDif + yDif * yDif);
 
       /** on collision **/
-      if (fDist < f1vRadii[indexA] + f1vRadii[indexB]) {
-        const fVelDifX = f2vVelocities[indexAVelX] - f2vVelocities[indexBVelX];
-        const fVelDifY = f2vVelocities[indexAVelY] - f2vVelocities[indexBVelY];
+      if (fDist < iPart.radius + jPart.radius) {
+        const vxDif = iPart.vx - jPart.vx;
+        const vyDif = iPart.vy - jPart.vy;
 
-        //const vVelDif = JVec.vSubFromA(JVec.vCreate(f2vVelocities, indexA, 2), 0, f2vVelocities, indexB);
+        const fNormX = xDif / fDist;
+        const fNormY = yDif / fDist;
 
-        const fNormX = fPosDifX / fDist;
-        const fNormY = fPosDifY / fDist;
+        const fDotVel = fNormX * vxDif + fNormY * vyDif;
 
-        const fDotVel = fNormX * fVelDifX + fNormY * fVelDifY;
+        iPart.vx += fNormX * -fDotVel;
+        iPart.vy += fNormY * -fDotVel;
 
-        //const fDotVel = JVec.fCalcDot(vNorm, vVelDif);
-
-        f2vVelocities[indexAVelX] += fNormX * -fDotVel;
-        f2vVelocities[indexAVelY] += fNormY * -fDotVel;
-
-        f2vVelocities[indexBVelX] += fNormX * fDotVel;
-        f2vVelocities[indexBVelY] += fNormY * fDotVel;
-
-        // JVec.vAddToA(f2vVelocities, indexA, JVec.vScale(JVec.vCopy(vNorm), -fDotVel), 0, 2);
-        // JVec.vAddToA(f2vVelocities, indexB, JVec.vScale(JVec.vCopy(vNorm), fDotVel), 0, 2);
-
-        // JVec.vAddToA(objBall1.vVel, JVec.vScale(JVec.vCopy(vNorm), -fDotVel));
-        // JVec.vAddToA(objBall2.vVel, JVec.vScale(JVec.vCopy(vNorm), fDotVel));
+        jPart.vx += fNormX * fDotVel;
+        jPart.vy += fNormY * fDotVel;
 
         // prevent stick by moving touching particles out of each other
-        const fOverlap = (fDist - (f1vRadii[indexA] + f1vRadii[indexB])) / 2;
+        const fOverlap = (fDist - (radii[i] + radii[j])) / 2;
         let fDisplaceX = fNormX * fOverlap;
         let fDisplaceY = fNormY * fOverlap;
 
-        f2vPositions[indexAPosX] -= fDisplaceX;
-        f2vPositions[indexAPosY] -= fDisplaceY;
+        iPart.x -= fDisplaceX;
+        iPart.y -= fDisplaceY;
 
-        f2vPositions[indexBPosX] += fDisplaceX;
-        f2vPositions[indexBPosY] += fDisplaceY;
+        jPart.x += fDisplaceX;
+        jPart.y += fDisplaceY;
       }
     }
   }
 
-  gl.uniform2fv(idPartPos, f2vPositions);
+  gl.uniform2fv(idPartPos, positions);
 
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 3);
 
   window.requestAnimationFrame(update);
 }
-
-/*** Socket ***/
-
-const socket = io();
-
-//simple hexcode to rgb method
-const hex2rgb = (hex) => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-
-  // return {r, g, b}
-  return { r, g, b };
-};
-
-// for(let i = 0; i < 10; i++) {
-//   createParticle(1 - Math.random() * 0.5, 1 - Math.random() * 0.5, 1 - Math.random() * 0.5, (1 - Math.random() * 0.8) * 50);
-// }
-
-socket.on("server to listener", (color, a, b, c, d, e) => {
-  rgb = hex2rgb(color);
-
-  // a/2+50 ranges between 50-100
-  createParticle(rgb.r / 255, rgb.g / 255, rgb.b / 255, a / 2 + 50);
-  //keep number of balls at 15
-  if (iNumParts > 15) {
-    destroyOldestParticle();
-  }
-});
