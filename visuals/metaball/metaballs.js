@@ -19,7 +19,6 @@ const idRadii = gl.getUniformLocation(program, "radii");
 const idNumParts = gl.getUniformLocation(program, "numParts");
 
 /*** Particle data ***/
-let initialParticleSpeed = 5;
 let maxParticles = 256;
 
 // particles aren't actually objects.
@@ -38,7 +37,7 @@ gl.uniform1ui(idNumParts, 0);
 
 // helper class for managing arrays sent to gpu
 class Particle {
-  constructor(fr, fg, fb, fRad) {
+  constructor(fr, fg, fb, fRad, fSpeed) {
 
     // make sure max particles isn't exceeded
     if (particles.length > maxParticles)
@@ -56,9 +55,9 @@ class Particle {
 
     const fRandRad = Math.random() * Math.PI * 2;
     // x velocity
-    velocities.push(Math.cos(fRandRad) * initialParticleSpeed);
+    velocities.push(Math.cos(fRandRad) * fSpeed);
     // y vel
-    velocities.push(Math.sin(fRandRad) * initialParticleSpeed);
+    velocities.push(Math.sin(fRandRad) * fSpeed);
 
     // color r, g, & b
     colors.push(fr);
