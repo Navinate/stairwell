@@ -7,13 +7,14 @@
     "lib": "lib"
   },
   "scripts": {
-    "start": "vite"
+    "start": "vite",
+    "tailwind": "npx tailwindcss -i ./styles/style.css -o ./styles/output.css --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Navinate/stairwell.git"
   },
-  "author": "Trey Cluff and Julian Triveri",
+  "author": "Trey Cluff and Julian Triveri with some help from Brian Ellis",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Navinate/stairwell/issues"

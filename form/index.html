@@ -5,47 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script defer src="js/form.js"></script>
     <script src="../socket/socket.io.min.js"></script>
-    <link href="../styles/output.css" rel="stylesheet" />
+    <link href="../styles/style.css" rel="stylesheet" />
     <title>StairWELL Form</title>
   </head>
-
-  <body class="bg-sky-600">
-    <div class="h-screen w-screen">
-      <header class="bg-sky-100 h-1/6 flex justify-center items-center shadow-xl">
-        <h1 class="font-sans w text-4xl">StairWELL Form</h1>
+  <body>
+    <div>
+      <header>
+        <h1>StairWELL Form</h1>
       </header>
-      <main class="h-5/6 w-full flex justify-center pt-12">
-        <div
-          class="max-w-2xl bg-sky-50 h-5/6 p-3 flex items-center flex-col justify-start space-y-5 shadow-sm"
-        >
-          <div class="flex items-center space-x-3">
-            <label for="color" class="text-lg">Select a Color: </label>
+      <main>
+        <div id="form-1" class="form-panel">
+          <div>
+            <label for="color" class="">Select a Color: </label>
             <input id="color-field" name="color" type="color" value="#FF0000" />
           </div>
-          <div class="flex items-center space-x-3 w-full">
-            <label for="a">A:</label>
-            <input type="range" min="0" max="100" value="50" id="a" class="slider" />
-          </div>
-          <div class="flex items-center space-x-3 w-full">
-            <label for="b">B:</label>
-            <input type="range" min="0" max="100" value="50" id="b" class="slider" />
-          </div>
-          <div class="flex items-center space-x-3 w-full">
-            <label for="c">C:</label>
-            <input type="range" min="0" max="100" value="50" id="c" class="slider" />
-          </div>
-          <div class="flex items-center space-x-3 w-full">
-            <label for="d">D:</label>
-            <input type="range" min="0" max="100" value="50" id="d" class="slider" />
-          </div>
-          <div class="flex items-center space-x-3 w-full">
-            <label for="e">E:</label>
-            <input type="range" min="0" max="100" value="50" id="e" class="slider" />
+          <button class="next-button" onclick="cycle();">Next Page</button>
+        </div>
+        <div id="form-2" class="form-panel">
+          <label for="a">I have felt cheerful in good spirits in the past two</label>
+          <div class="slider-wrapper">
+            <div>
+              <p>Agree</p>
+              <p>Disagree</p>
+            </div>
+            <input
+              orient="vertical"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="a"
+              class="slider"
+            />
           </div>
 
-          <button id="submit-button" class="rounded-full bg-black text-white w-24 h-12 m-1">
-            Submit
-          </button>
+          <button class="next-button" onclick="cycle();">Next Question</button>
+        </div>
+        <div id="form-3" class="form-panel">
+          <div>
+            <label for="b">I have felt calm and relaxed:</label>
+            <input type="range" min="0" max="100" value="50" id="b" class="slider" />
+          </div>
+          <button class="next-button" onclick="cycle();">Next Question</button>
+        </div>
+        <div id="form-4" class="form-panel">
+          <div>
+            <label for="c">I have felt active and vigorous:</label>
+            <input type="range" min="0" max="100" value="50" id="c" class="slider" />
+          </div>
+          <button class="next-button" onclick="cycle();">Next Question</button>
+        </div>
+        <div id="form-5" class="form-panel">
+          <div>
+            <label for="d">I woke up feeling fresh and rested:</label>
+            <input type="range" min="0" max="100" value="50" id="d" class="slider" />
+          </div>
+          <button class="next-button" onclick="cycle();">Next Question</button>
+        </div>
+        <div id="form-6" class="form-panel">
+          <div>
+            <label for="e">My daily life has been filled with things that interest me:</label>
+            <input type="range" min="0" max="100" value="50" id="e" class="slider" />
+          </div>
+          <button id="submit-button">Submit</button>
         </div>
       </main>
       <footer></footer>

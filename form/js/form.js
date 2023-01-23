@@ -4,6 +4,8 @@ console.log("connected to websocket");
 let sliders = document.querySelectorAll(".slider");
 randomizeForm();
 
+document.getElementById("form-2").style.display = "flex";
+
 document.querySelector("#submit-button").onclick = () => {
   console.log("submitting data");
   let color = document.querySelector("#color-field").value;
