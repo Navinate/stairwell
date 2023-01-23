@@ -1,3 +1,7 @@
+//const socket = io("ws://127.0.0.1:3000"); //LOCAL TESTING
+const socket = io(); //LIVE SERVER
+console.log("connected to websocket");
+
 let width = window.innerWidth;
 let height = window.innerHeight;
 
@@ -47,6 +51,16 @@ function mousePressed() {
   }
 }
 
+socket.on("server to listener", (color, a, b, c, d, e) => {
+  console.log("recieved data");
+  grid[gridMarker].setData(color, a, b, c, d, e);
+  grid[gridMarker].render();
+  gridMarker++;
+  if (gridMarker >= grid.length) {
+    gridMarker = 0;
+  }
+});
+
 class Panel {
   constructor(x, y) {
     this.pos = createVector(x * rowsOffset, y * colsOffset);
@@ -84,7 +98,7 @@ class Panel {
   }
 }
 
-setInterval(mousePressed, 500);
+//setInterval(mousePressed, 500);
 
 //helper shuffle function snagged from https://bost.ocks.org/mike/shuffle/
 function shuffle(array) {
