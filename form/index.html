@@ -19,10 +19,10 @@
             <label for="color" class="">Select a Color: </label>
             <input id="color-field" name="color" type="color" value="#FF0000" />
           </div>
-          <button class="next-button" onclick="cycle();">Next Page</button>
+          <button class="next-button" onclick="cycle();">Next Question</button>
         </div>
         <div id="form-2" class="form-panel">
-          <label for="a">I have felt cheerful in good spirits in the past two</label>
+          <label for="a">I have felt cheerful in good spirits in the past two weeks</label>
           <div class="slider-wrapper">
             <div>
               <p>Agree</p>
@@ -42,32 +42,93 @@
           <button class="next-button" onclick="cycle();">Next Question</button>
         </div>
         <div id="form-3" class="form-panel">
-          <div>
-            <label for="b">I have felt calm and relaxed:</label>
-            <input type="range" min="0" max="100" value="50" id="b" class="slider" />
+          <label for="b">I have felt calm and relaxed in the past two weeks</label>
+          <div class="slider-wrapper">
+            <div>
+              <p>Agree</p>
+              <p>Disagree</p>
+            </div>
+            <input
+              orient="vertical"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="b"
+              class="slider"
+            />
           </div>
+
           <button class="next-button" onclick="cycle();">Next Question</button>
         </div>
         <div id="form-4" class="form-panel">
-          <div>
-            <label for="c">I have felt active and vigorous:</label>
-            <input type="range" min="0" max="100" value="50" id="c" class="slider" />
+          <label for="c">I have felt active and vigorous in the past two weeks</label>
+          <div class="slider-wrapper">
+            <div>
+              <p>Agree</p>
+              <p>Disagree</p>
+            </div>
+            <input
+              orient="vertical"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="c"
+              class="slider"
+            />
           </div>
+
           <button class="next-button" onclick="cycle();">Next Question</button>
         </div>
         <div id="form-5" class="form-panel">
-          <div>
-            <label for="d">I woke up feeling fresh and rested:</label>
-            <input type="range" min="0" max="100" value="50" id="d" class="slider" />
+          <label for="d">I woke up feeling fresh and rested in the past two weeks</label>
+          <div class="slider-wrapper">
+            <div>
+              <p>Agree</p>
+              <p>Disagree</p>
+            </div>
+            <input
+              orient="vertical"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="d"
+              class="slider"
+            />
           </div>
+
           <button class="next-button" onclick="cycle();">Next Question</button>
         </div>
         <div id="form-6" class="form-panel">
-          <div>
-            <label for="e">My daily life has been filled with things that interest me:</label>
-            <input type="range" min="0" max="100" value="50" id="e" class="slider" />
+          <label for="e"
+            >My daily life has been filled with things that interest me in the past two weeks</label
+          >
+          <div class="slider-wrapper">
+            <div>
+              <p>Agree</p>
+              <p>Disagree</p>
+            </div>
+            <input
+              orient="vertical"
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="e"
+              class="slider"
+            />
           </div>
-          <button id="submit-button">Submit</button>
+
+          <button class="next-button" onclick="cycle();">Next Question</button>
+        </div>
+        <div id="form-7" class="form-panel">
+          <div>
+            <label for="text">Any other thoughts you would like to share?</label>
+            <textarea id="text-field" name="text"></textarea>
+          </div>
+          <button id="submit-button" class="next-button">Submit</button>
         </div>
       </main>
       <footer></footer>

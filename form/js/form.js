@@ -3,8 +3,19 @@ const socket = io(); //LIVE SERVER
 console.log("connected to websocket");
 let sliders = document.querySelectorAll(".slider");
 randomizeForm();
+let textField = document.getElementById("text-field");
 
-document.getElementById("form-2").style.display = "flex";
+let panels = document.querySelectorAll(".form-panel");
+let panelIndex = 0;
+panels[panelIndex].style.display = "flex";
+let nextButtons = document.querySelectorAll(".next-button");
+nextButtons.forEach((nxtBtn) => {
+  nxtBtn.addEventListener("mouseup", () => {
+    panels[panelIndex].style.display = "none";
+    panelIndex++;
+    panels[panelIndex].style.display = "flex";
+  });
+});
 
 document.querySelector("#submit-button").onclick = () => {
   console.log("submitting data");
@@ -14,7 +25,8 @@ document.querySelector("#submit-button").onclick = () => {
   let c = sliders[2].value;
   let d = sliders[3].value;
   let e = sliders[4].value;
-  socket.emit("form to server", color, a, b, c, d, e);
+  let text = textField.value;
+  socket.emit("form to server", color, a, b, c, d, e, text);
   randomizeForm();
 };
 
