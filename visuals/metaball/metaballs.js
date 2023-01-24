@@ -3,7 +3,7 @@
 /*** Create GL program ***/
 
 // program
-const program = createProgram(getFile("tri.glsl"), getFile("energyballs.glsl"));
+const program = createProgram(getFile("tri.glsl"), getFile("metaballs.glsl"));
 gl.useProgram(program);
 
 // uniform locations

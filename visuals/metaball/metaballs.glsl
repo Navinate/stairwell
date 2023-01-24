@@ -12,11 +12,13 @@ in vec2 texCoord;
 out vec4 fragColor;
 
 void main(void) {
-    float f = 0.0;
-    uint iClosest = 0u;
-    float fClosest = 999999.0;
+    //    float f = 0.0;
+    //    uint iClosest = 0u;
+    //    float fClosest = 999999.0;
     fragColor = vec4(0, 0, 0, 1);
-    for(uint i = 0u; i < numParts; i++)
+    float powFalloff = 2.5;
+    float powerSum = 0.0;
+    for (uint i = 0u; i < numParts; i++)
     {
         vec2 p = positions[i];
 
@@ -25,16 +27,15 @@ void main(void) {
         float dx = texCoord.x - positions[i].x;
         float dy = texCoord.y - positions[i].y;
 
-        float d = dx * dx + dy * dy;
+        float dist = sqrt(dx * dx + dy * dy);
+        float power = pow(min(rad / dist, 1.0), powFalloff);
+        powerSum += power;
 
-        if(d < fClosest) {
-            fClosest = d;
-            iClosest = i;
-        }
-
-        f += rad * rad / d;
+        fragColor += vec4((colors[i].rgb * power), 1.0);
     }
 
-    if(f > 0.3)
-        fragColor = vec4(colors[iClosest], 1);
+    float m = max(max(fragColor.r, fragColor.g), fragColor.b);
+
+    fragColor = vec4(fragColor.rgb / m * floor(min(powerSum, 1.0)), 1.0);
+
 }
