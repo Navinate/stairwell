@@ -12,8 +12,10 @@ let nextButtons = document.querySelectorAll(".next-button");
 nextButtons.forEach((nxtBtn) => {
   nxtBtn.addEventListener("mouseup", () => {
     panels[panelIndex].style.display = "none";
-    panelIndex++;
-    panels[panelIndex].style.display = "flex";
+    if (panelIndex < panels.length) {
+      panelIndex++;
+      panels[panelIndex].style.display = "flex";
+    }
   });
 });
 
