@@ -22,10 +22,10 @@ async function init() {
 
   io.on("connection", (socket) => {
     console.log("client connected");
-    socket.on("form to server", (color, a, b, c, d, e) => {
+    socket.on("form to server", (color, a, b, c, d, e, text) => {
       let data = { color: color, a: a, b: b, c: c, d: d, e: e };
       client.LPUSH(redisKey, JSON.stringify(data));
-      console.log(data.color);
+      client.LPUSH("thoughts", text);
     });
   });
 
