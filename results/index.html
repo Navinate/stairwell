@@ -7,7 +7,14 @@
     <title>StairWELL Results</title>
   </head>
   <body style="font-size: 40pt">
-    <p>You have visited this page: <span id="count"></span> times</p>
-    <button style="font-size: 40pt" onclick="Cookies.remove('count');">Clear Cookie</button>
+    <p>
+      You have filled out the StairWELL form <span id="count"></span> times.
+      <br />
+      <a>Click Here to fill it out again.</a>
+    </p>
+    <footer>
+      <p>We use a cookie to track how many times your browser has filled out the form</p>
+      <button style="font-size: 40pt" onclick="Cookies.remove('count');">Clear Cookie</button>
+    </footer>
   </body>
 </html>
