@@ -1,9 +1,13 @@
 function randCol() {
-    return (1 - Math.random() * 0.5);
+  return (Math.random());
 }
 
-maxParticles = 10;
+maxParticles = 20;
 
-for(let i = 0; i < 15; i++) {
-    new Particle(randCol(), randCol(), randCol(), 15 + Math.random() * 50, Math.random() * 10);
+for (let i = 0; i < 50; i++) {
+  new Particle(randCol(),
+    randCol(),
+    randCol(),
+    35 + Math.random() * 50,
+    Math.random() * 1);
 }

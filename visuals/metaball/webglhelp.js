@@ -13,7 +13,6 @@ function glCreateShader(source, type) {
     return shader;
   }
 
-  alert("Shader compilation error. Check log");
   console.log(gl.getShaderInfoLog(shader));
   gl.deleteShader(shader);
 }
