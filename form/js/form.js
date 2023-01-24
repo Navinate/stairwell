@@ -29,7 +29,7 @@ document.querySelector("#submit-button").onclick = () => {
   let e = sliders[4].value;
   let text = textField.value;
   socket.emit("form to server", color, a, b, c, d, e, text);
-  window.location.href = "../results/index.html";
+  window.location.href = "../results/";
 };
 
 function randomizeForm() {

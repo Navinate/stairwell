@@ -4,15 +4,25 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
+}
+
+button {
+  font-family: "Bungee", sans-serif;
+  font-size: 1.5rem;
+  padding: 0px 10px;
+  border: none;
+  box-shadow: black 0px 0px 3px;
+  border-radius: 200px;
 }
 
 #color-field {
   border-radius: 50%;
   height: 120px;
   width: 120px;
-  border: none;
+  border: #95b8d1;
+  background-color: #95b8d1;
   outline: none;
+  overflow: hidden;
   appearance: none;
 }
 
@@ -30,7 +40,7 @@
   appearance: none;
   position: relative;
   margin: 20px;
-  width: 20vw;
+  width: 64px;
   border-radius: 50px;
   background: #d3d3d3;
   outline: none;
@@ -80,7 +90,7 @@
   justify-content: center;
 }
 
-label {
+.form-panel label {
   padding: 20px 20px 0px 20px;
   font-size: 16pt;
   height: 20vh;
@@ -89,14 +99,12 @@ label {
 }
 .slider-wrapper {
   height: 70vh;
-  width: 100vw;
   display: flex;
   flex-direction: row;
   align-content: center;
   justify-content: center;
 }
 .slider-wrapper div {
-  width: 50vw;
   display: flex;
   justify-content: space-between;
   flex-direction: column;
@@ -116,6 +124,10 @@ header {
   justify-content: center;
   align-items: center;
   height: 10vh;
+  background-color: #4a6670;
+  color: white;
+  box-shadow: 0px 0px 5px gray;
+  border-radius: 0 0 25px 25px;
 }
 header h1 {
   font-size: 2rem;
@@ -123,23 +135,50 @@ header h1 {
 }
 
 main {
-  height: 80vh;
+  height: 90vh;
   background-color: #95b8d1;
+  max-width: 500px;
+  margin: 20px auto 0px auto;
+  border-radius: 25px 25px 0px 0px;
+  box-shadow: 0px 0px 5px gray;
 }
 
 .next-button {
-  height: 64px;
-  width: 128px;
-  padding: 5px;
-  border-radius: 50px;
-  border: none;
+  font-size: 1rem;
   background-color: #666a86;
-  font-family: "Bungee", sans-serif;
   color: white;
-  margin-bottom: 20px;
 }
 
-textarea {
+.form-panel textarea {
   margin: -40px 40px 20px 40px;
   height: 40vh;
+}
+
+#results-info {
+  margin: 20px;
+  font-size: 20pt;
+  padding: 20px;
+  text-align: justify;
+}
+
+#cookie-info {
+  margin: 20px;
+  font-size: 1rem;
+  padding: 5px;
+  text-align: justify;
+}
+
+#cookie-info button {
+  font-size: 1rem;
+  padding: 0px 10px;
+  border: none;
+  background-color: #ff1b1c;
+  color: white;
+  box-shadow: black 0px 0px 3px;
+  margin-top: 10px;
+  border-radius: 100px;
+}
+
+#count {
+  display: inline;
 }
