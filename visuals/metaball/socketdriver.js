@@ -1,7 +1,7 @@
 /*** Socket ***/
 
 // set max particles to 15
-maxParticles = 15;
+  maxParticles = 100;
 
 const socket = io("wss://navinate.com/");
 
@@ -19,5 +19,5 @@ socket.on("server to listener", (color, a, b, c, d, e) => {
     rgb = hex2rgb(color);
 
     // a/2+50 ranges between 50-100
-    new Particle(rgb.r / 255, rgb.g / 255, rgb.b / 255, 25 + a / 100 * 50 , b / 100);
+    new Particle(rgb.r / 255, rgb.g / 255, rgb.b / 255, 5 + a / 100 * 50 , b / 100);
 });

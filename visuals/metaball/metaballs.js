@@ -63,7 +63,7 @@ class Particle {
     particles.splice(this.index);
     vPositions.splice(this.index * vPositionSize, vPositionSize);
     vVelocities.splice(this.index * vVelocitySize, vVelocitySize);
-    vColors.splice(this.index * vColors, vColorSize);
+    vColors.splice(this.index * vColorSize, vColorSize);
     vTraits.splice(this.index * vTraitSize, vTraitSize);
 
     // update gpu data
