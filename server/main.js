@@ -25,7 +25,9 @@ async function init() {
     socket.on("form to server", (color, a, b, c, d, e, text) => {
       let data = { color: color, a: a, b: b, c: c, d: d, e: e };
       client.LPUSH(redisKey, JSON.stringify(data));
-      client.LPUSH("thoughts", text);
+      if (text !== "") {
+        client.LPUSH("thoughts", text);
+      }
     });
   });
 
