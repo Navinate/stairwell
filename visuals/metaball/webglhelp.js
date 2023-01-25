@@ -17,6 +17,9 @@ function glCreateShader(source, type) {
   gl.deleteShader(shader);
 }
 
+let canvasX = 0;
+let canvasY = 0;
+
 function setupFullscreenShader(vertSrc, fragSrc) {
   const program = gl.createProgram();
   gl.attachShader(program, glCreateShader(vertSrc, gl.VERTEX_SHADER));
@@ -38,14 +41,30 @@ function setupFullscreenShader(vertSrc, fragSrc) {
   gl.uniform1f(idCanvWidth, canvas.width);
   gl.uniform1f(idCanvHeight, canvas.height);
 
-  addEventListener("resize", (event) => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    gl.viewport(0, 0, canvas.width, canvas.height);
+  onmousedown = (event) => {
+    if(event.ctrlKey) {
+      canvasX = event.clientX;
+      canvasY = event.clientY;
+      canvas.style.left = canvasX + 'px';
+      canvas.style.top = canvasY + 'px';
+    } else if(event.altKey) {
+      canvas.width = event.clientX - canvasX;
+      canvas.height = event.clientY - canvasY;
+    }
 
     gl.uniform1f(idCanvWidth, canvas.width);
     gl.uniform1f(idCanvHeight, canvas.height);
-  });
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  };
+
+  // addEventListener("resize", (event) => {
+  //   canvas.width = window.innerWidth;
+  //   canvas.height = window.innerHeight;
+  //   gl.viewport(0, 0, canvas.width, canvas.height);
+  //
+  //   gl.uniform1f(idCanvWidth, canvas.width);
+  //   gl.uniform1f(idCanvHeight, canvas.height);
+  // });
 
   return program;
 }
