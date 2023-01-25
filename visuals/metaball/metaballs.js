@@ -18,9 +18,6 @@ let particles = [];
 const vPositionSize = 3;
 let vPositions = [];
 
-const vVelocitySize = 2;
-let vVelocities = [];
-
 const vColorSize = 3;
 let vColors = [];
 
@@ -31,7 +28,7 @@ gl.uniform1ui(idNumParts, 0);
 
 // helper class for managing arrays sent to gpu
 class Particle {
-  constructor(fr, fg, fb, fRad, fSpeed) {
+  constructor(fr, fg, fb, fRad, fSpeed, fMagnet) {
 
     // make sure max particles isn't exceeded
     if (particles.length > maxParticles)
@@ -43,11 +40,12 @@ class Particle {
     gl.uniform1ui(idNumParts, particles.length);
 
     // position
-    vPositions.push(Math.random() * canvas.width, Math.random() * canvas.height, 0);
+    vPositions.push(Math.random() * canvas.width, Math.random() * canvas.height, 10);
 
     // velocity
     const fRandRad = Math.random() * Math.PI * 2;
-    vVelocities.push(Math.cos(fRandRad) * fSpeed, Math.sin(fRandRad) * fSpeed);
+    this.vx = Math.cos(fRandRad) * fSpeed;
+    this.vy = Math.sin(fRandRad) * fSpeed;
 
     // color
     vColors.push(fr, fg, fb);
@@ -56,13 +54,15 @@ class Particle {
     // traits (radius, tbd, tbd, tbd)
     vTraits.push(fRad, 0.0, 0.0, 0.0);
     gl.uniform4fv(idTraits, vTraits);
+
+    // force
+    this.magForce = fMagnet;
   }
 
   destroy() {
     // remove data from arrays
     particles.splice(this.index);
     vPositions.splice(this.index * vPositionSize, vPositionSize);
-    vVelocities.splice(this.index * vVelocitySize, vVelocitySize);
     vColors.splice(this.index * vColorSize, vColorSize);
     vTraits.splice(this.index * vTraitSize, vTraitSize);
 
@@ -97,26 +97,14 @@ class Particle {
 
   // glow
   set glow(f) {
-    vPositions[this.index * vPositionSize +2] = f;
+    vPositions[this.index * vPositionSize + 2] = f;
   }
 
   get glow() {
-    return vPositions[this.index * vPositionSize +2];
+    return vPositions[this.index * vPositionSize + 2];
   }
 
   // velocity
-  set vx(f) {
-    vVelocities[this.index * vVelocitySize] = f;
-  }
-
-  set vy(f) {
-    vVelocities[this.index * vVelocitySize + 1] = f;
-  }
-
-  setVel(fvx, fvy) {
-    this.vx = fvx;
-    this.vy = fvy;
-  }
 
   velStep() {
     this.x += this.vx;
@@ -148,25 +136,22 @@ class Particle {
     // }
 
     // constrain within screen
+
     if (this.x < 0) {
+      this.x = 0;
       this.vx = Math.abs(this.vx);
     } else if (this.x > canvas.width) {
+      this.x = canvas.width;
       this.vx = -Math.abs(this.vx);
     }
 
     if (this.y < 0) {
+      this.y = 0;
       this.vy = Math.abs(this.vy);
     } else if (this.y > canvas.height) {
+      this.y = canvas.height;
       this.vy = -Math.abs(this.vy);
     }
-  }
-
-  get vx() {
-    return vVelocities[this.index * vVelocitySize];
-  }
-
-  get vy() {
-    return vVelocities[this.index * vVelocitySize + 1]
   }
 
   // color - don't forget to send updated colors to gpu if you change them!
@@ -211,11 +196,8 @@ class Particle {
 }
 
 // sound effects
-var music = new Audio('sfx/Stairwell_0124_base2.mp3');
-music.loop = true;
-music.play();
 
-let collisionSounds = [new Audio('sfx/AIA_PluckDb_0923.mp3'), new Audio('sfx/AIA_PluckEb_0923.mp3'), new Audio('sfx/AIA_PluckBb_1111.mp3')];
+// let collisionSounds = [new Audio('sfx/AIA_PluckDb_0923.mp3'), new Audio('sfx/AIA_PluckEb_0923.mp3'), new Audio('sfx/AIA_PluckBb_1111.mp3')];
 
 
 window.requestAnimationFrame(update);
@@ -235,40 +217,47 @@ function update() {
 
       let fDist = Math.sqrt(xDif * xDif + yDif * yDif);
 
-      /** on collision **/
-      if (fDist < iPart.radius + jPart.radius) {
+      const fNormX = xDif / fDist * (iPart.magForce + jPart.magForce);
+      const fNormY = yDif / fDist * (iPart.magForce + jPart.magForce);
 
-        let sound = collisionSounds[Math.floor(Math.random() * collisionSounds.length)].cloneNode(true);
-        sound.volume = 0.5;
-        sound.play();
-        iPart.glow = 1;
-        jPart.glow = 1;
+      iPart.vx += fNormX / fDist;
+      iPart.vy += fNormY / fDist;
+      jPart.vx -= fNormX / fDist;
+      jPart.vy -= fNormY / fDist;
 
-        const vxDif = iPart.vx - jPart.vx;
-        const vyDif = iPart.vy - jPart.vy;
-
-        const fNormX = xDif / fDist;
-        const fNormY = yDif / fDist;
-
-        const fDotVel = fNormX * vxDif + fNormY * vyDif;
-
-        iPart.vx += fNormX * -fDotVel;
-        iPart.vy += fNormY * -fDotVel;
-
-        jPart.vx += fNormX * fDotVel;
-        jPart.vy += fNormY * fDotVel;
-
-        // prevent stick by moving touching particles out of each other
-        const fOverlap = (fDist - (vTraits[i * vTraitSize] + vTraits[j * vTraitSize])) / 2;
-        let fDisplaceX = fNormX * fOverlap;
-        let fDisplaceY = fNormY * fOverlap;
-
-        iPart.x -= fDisplaceX;
-        iPart.y -= fDisplaceY;
-
-        jPart.x += fDisplaceX;
-        jPart.y += fDisplaceY;
-      }
+      //
+      // /** on collision **/
+      // if (fDist < iPart.radius + jPart.radius) {
+      //
+      //   let sound = collisionSounds[Math.floor(Math.random() * collisionSounds.length)].cloneNode(true);
+      //   sound.volume = 0.5;
+      //   sound.play();
+      //   iPart.glow = 1;
+      //   jPart.glow = 1;
+      //
+      //   const vxDif = iPart.vx - jPart.vx;
+      //   const vyDif = iPart.vy - jPart.vy;
+      //
+      //
+      //   const fDotVel = fNormX * vxDif + fNormY * vyDif;
+      //
+      //   iPart.vx += fNormX * -fDotVel;
+      //   iPart.vy += fNormY * -fDotVel;
+      //
+      //   jPart.vx += fNormX * fDotVel;
+      //   jPart.vy += fNormY * fDotVel;
+      //
+      //   // prevent stick by moving touching particles out of each other
+      //   const fOverlap = (fDist - (vTraits[i * vTraitSize] + vTraits[j * vTraitSize])) / 2;
+      //   let fDisplaceX = fNormX * fOverlap;
+      //   let fDisplaceY = fNormY * fOverlap;
+      //
+      //   iPart.x -= fDisplaceX;
+      //   iPart.y -= fDisplaceY;
+      //
+      //   jPart.x += fDisplaceX;
+      //   jPart.y += fDisplaceY;
+      // }
     }
   }
 
