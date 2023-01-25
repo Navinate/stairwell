@@ -12,12 +12,9 @@ document.querySelector("#submit-button").onclick = () => {
   let c = sliders[2].value;
   let d = sliders[3].value;
   let e = sliders[4].value;
-  let text = textField.value;
+  let text = "";
   socket.emit("form to server", color, a, b, c, d, e, text);
-  panelIndex = 0;
-  panels[panelIndex].style.display = "flex";
   randomizeForm();
-  window.location.href = "../results/";
 };
 
 function randomizeForm() {
