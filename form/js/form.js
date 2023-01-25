@@ -12,8 +12,10 @@ let nextButtons = document.querySelectorAll(".next-button");
 nextButtons.forEach((nxtBtn) => {
   nxtBtn.addEventListener("mouseup", () => {
     panels[panelIndex].style.display = "none";
-    panelIndex++;
-    panels[panelIndex].style.display = "flex";
+    if (panelIndex < panels.length) {
+      panelIndex++;
+      panels[panelIndex].style.display = "flex";
+    }
   });
 });
 
@@ -27,7 +29,7 @@ document.querySelector("#submit-button").onclick = () => {
   let e = sliders[4].value;
   let text = textField.value;
   socket.emit("form to server", color, a, b, c, d, e, text);
-  window.location.href = "../results/index.html";
+  window.location.href = "../results/";
 };
 
 function randomizeForm() {
