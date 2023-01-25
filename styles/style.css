@@ -36,10 +36,7 @@ button {
   border-radius: 50%;
 }
 
-.slider {
-  appearance: slider-vertical;
-  appearance: none;
-  position: relative;
+/* .slider {
   margin: 20px;
   width: 64px;
   border-radius: 50px;
@@ -62,7 +59,7 @@ button {
   border-radius: 50%;
   background: #357fbb;
   cursor: pointer;
-}
+} */
 
 .form-panel {
   display: none;
@@ -100,23 +97,24 @@ button {
 }
 .slider-wrapper {
   height: 70vh;
+  width: 80%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-content: center;
   justify-content: center;
 }
 .slider-wrapper div {
   display: flex;
   justify-content: space-between;
-  flex-direction: column;
+  flex-direction: row-reverse;
+  width: 100%;
   align-content: center;
-  margin: 0px 20px;
+  margin: 0px 0px;
 }
 .slider-wrapper div p {
   font-size: 20pt;
   padding: 5px;
-  padding-left: 20px;
-  text-align: end;
+  text-align: center;
   font-family: "Bungee", sans-serif;
 }
 
