@@ -2,7 +2,7 @@ function randCol() {
   return (Math.random());
 }
 
-for (let i = 0; i < 15; i++) {
+for (let i = 0; i < 5; i++) {
   new Particle(randCol(),
     randCol(),
     randCol(),
