@@ -1,17 +1,7 @@
-// WHO5 Metaball
-
 /*** Create GL program ***/
 
 // program
-const program = createProgram(getFile("tri.glsl"), getFile("metaballs.glsl"));
-gl.useProgram(program);
-
-// uniform locations
-const idCanvWidth = gl.getUniformLocation(program, "canvWidth");
-const idCanvHeight = gl.getUniformLocation(program, "canvHeight");
-
-gl.uniform1f(idCanvWidth, canvas.width);
-gl.uniform1f(idCanvHeight, canvas.height);
+const program = setupFullscreenShader(getFile("tri.glsl"), getFile("metaballs.glsl"));
 
 const idNumParts = gl.getUniformLocation(program, "numParts");
 const idPositions = gl.getUniformLocation(program, "positions");
@@ -25,7 +15,7 @@ let maxParticles = 256;
 // they're arrays instead to easily send to the gpu
 let particles = [];
 
-const vPositionSize = 2;
+const vPositionSize = 3;
 let vPositions = [];
 
 const vVelocitySize = 2;
@@ -53,7 +43,7 @@ class Particle {
     gl.uniform1ui(idNumParts, particles.length);
 
     // position
-    vPositions.push(Math.random() * canvas.width, Math.random() * canvas.height);
+    vPositions.push(Math.random() * canvas.width, Math.random() * canvas.height, 0);
 
     // velocity
     const fRandRad = Math.random() * Math.PI * 2;
@@ -78,7 +68,7 @@ class Particle {
 
     // update gpu data
     gl.uniform1ui(idNumParts, particles.length);
-    gl.uniform2fv(idPositions, vPositions);
+    gl.uniform3fv(idPositions, vPositions);
     gl.uniform3fv(idColors, vColors);
     gl.uniform4fv(idTraits, vTraits);
   }
@@ -105,6 +95,15 @@ class Particle {
     return vPositions[this.index * vPositionSize + 1]
   }
 
+  // glow
+  set glow(f) {
+    vPositions[this.index * vPositionSize +2] = f;
+  }
+
+  get glow() {
+    return vPositions[this.index * vPositionSize +2];
+  }
+
   // velocity
   set vx(f) {
     vVelocities[this.index * vVelocitySize] = f;
@@ -122,6 +121,8 @@ class Particle {
   velStep() {
     this.x += this.vx;
     this.y += this.vy;
+
+    this.glow *= 0.95;
 
     // for(let i = 0; i < colliders.length; i++) {
     //   let col = colliders[i];
@@ -209,20 +210,13 @@ class Particle {
   }
 }
 
-let colliders = [];
+// sound effects
+var music = new Audio('sfx/Stairwell_0124_base2.mp3');
+music.loop = true;
+music.play();
 
-class Collider {
-  constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
+let collisionSounds = [new Audio('sfx/AIA_PluckDb_0923.mp3'), new Audio('sfx/AIA_PluckEb_0923.mp3'), new Audio('sfx/AIA_PluckBb_1111.mp3')];
 
-    colliders.push(this);
-  }
-}
-
-new Collider(100, 100, 800, 800);
 
 window.requestAnimationFrame(update);
 
@@ -243,6 +237,13 @@ function update() {
 
       /** on collision **/
       if (fDist < iPart.radius + jPart.radius) {
+
+        let sound = collisionSounds[Math.floor(Math.random() * collisionSounds.length)].cloneNode(true);
+        sound.volume = 0.5;
+        sound.play();
+        iPart.glow = 1;
+        jPart.glow = 1;
+
         const vxDif = iPart.vx - jPart.vx;
         const vyDif = iPart.vy - jPart.vy;
 
@@ -271,7 +272,7 @@ function update() {
     }
   }
 
-  gl.uniform2fv(idPositions, vPositions);
+  gl.uniform3fv(idPositions, vPositions);
 
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 3);
 

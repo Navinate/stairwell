@@ -2,12 +2,10 @@ function randCol() {
   return (Math.random());
 }
 
-maxParticles = 5;
-
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 15; i++) {
   new Particle(randCol(),
     randCol(),
     randCol(),
-    35 + Math.random() * 50,
-    Math.random() * 10);
+    50 + Math.random() * 50,
+    Math.random() * 1);
 }

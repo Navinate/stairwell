@@ -2,7 +2,7 @@
 
 precision lowp float;
 
-uniform vec2[256] positions;
+uniform vec3[256] positions;
 uniform vec3[256] colors;
 uniform vec4[256] traits;
 uniform uint numParts;
@@ -14,9 +14,11 @@ out vec4 frag;
 void main(void) {
     float powFalloff = 2.5;
     float powerSum = 0.0;
+    vec3 glow = vec3(0.0);
     for (uint i = 0u; i < numParts; i++)
     {
-        vec2 pos = positions[i];
+        vec2 pos = positions[i].xy;
+        float strength = positions[i].z;
         vec4 trait = traits[i];
         vec3 col = colors[i];
 
@@ -31,10 +33,12 @@ void main(void) {
         powerSum += power;
 
         frag += vec4((col.rgb * power), 1.0);
+        glow += col.rgb * strength * power;
     }
 
     float m = max(max(frag.r, frag.g), frag.b);
 
     frag = vec4(frag.rgb / m * floor(min(powerSum, 1.0)), 1.0);
+    frag += vec4(glow.rgb, 1.0);
 
 }
