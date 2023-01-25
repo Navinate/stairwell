@@ -1,5 +1,5 @@
 //const socket = io("ws://127.0.0.1:3000"); //LOCAL TESTING
-//const socket = io(); //LIVE SERVER
+const socket = io(); //LIVE SERVER
 console.log("connected to websocket");
 
 let inLaterHalf = false;
@@ -8,7 +8,7 @@ let fadeValue = 3;
 let id = null;
 
 //files
-let base, entry, cello, glacier, tundra, blurosti, chords;
+let base, entry, cello, glacier, tundra, blurosti, chords, bubbles, pingpong;
 let randomSounds = [];
 let readyToListen = false;
 let loadingStatus = document.getElementById("audio-status");
@@ -70,7 +70,19 @@ function loadSongs() {
                                                                         new Pizzicato.Sound(
                                                                           "./sound/random/15.mp3",
                                                                           () => {
-                                                                            init();
+                                                                            bubbles =
+                                                                              new Pizzicato.Sound(
+                                                                                "./sound/one/bubbles.mp3",
+                                                                                () => {
+                                                                                  pingpong =
+                                                                                    new Pizzicato.Sound(
+                                                                                      "./sound/pingpong.mp3",
+                                                                                      () => {
+                                                                                        init();
+                                                                                      }
+                                                                                    );
+                                                                                }
+                                                                              );
                                                                           }
                                                                         );
                                                                     }
@@ -131,6 +143,7 @@ function toggleHalf() {
 
 socket.on("server to listener", (color, a, b, c, d, e) => {
   if (readyToListen) {
+    entry.volume = 1;
     entry.play();
     let rgb = hexToRgb(color);
     let maxRGB = Math.max(rgb.r, rgb.g, rgb.b);
@@ -144,84 +157,47 @@ socket.on("server to listener", (color, a, b, c, d, e) => {
     let dC = Math.abs(c - avgWhoFive);
     let dD = Math.abs(d - avgWhoFive);
     let dE = Math.abs(e - avgWhoFive);
-
+    let biggestDiff = Math.max(dA, dB, dC, dD, dE);
     //cello is b
     //glacier is d
     //tundra is nothing
     if (!inLaterHalf) {
-      let songToPlay = tundra; // CHANGE
-      let biggestDiff = Math.max(dA, dB, dC, dD, dE);
+      let songToPlay = cello; // CHANGE
+
+      //a
       if (dA === biggestDiff) {
-        songToPlay = songToPlay; // CHANGE
+        songToPlay = bubbles;
       } else if (dB === biggestDiff) {
         songToPlay = cello;
       } else if (dC === biggestDiff) {
-        songToPlay = songToPlay; // CHANGE
+        songToPlay = bubbles;
       } else if (dD === biggestDiff) {
         songToPlay = glacier;
       } else {
-        songToPlay = songToPlay; // CHANGE
+        songToPlay = pingpong;
+        playRandomNotes();
       }
 
-      /*
-      for(rand) {
-        note(rand)
-        delay(rand)
-      }
-      
-      
-      */
+      songToPlay.play();
     } else {
       if (dA === biggestDiff) {
-        blurosti.volume = 0;
-
-        window.requestAnimationFrame(() => {
-          raise(blurosti);
-        });
+        blurosti.volume = 1;
+        chords.volume = 0;
       } else if (dB === biggestDiff) {
-        songToPlay = cello;
+        blurosti.volume = 0;
+        chords.volume = 1;
       } else if (dC === biggestDiff) {
-        songToPlay = songToPlay; // CHANGE
+        blurosti.volume = 1;
+        chords.volume = 0;
+      } else if (dD === biggestDiff) {
+        blurosti.volume = 0;
+        chords.volume = 1;
       } else {
-        songToPlay = glacier;
+        playRandomNotes();
       }
     }
   }
 });
-
-function simData() {
-  let color = document.getElementById("test-color").value;
-  if (readyToListen) {
-    if (!inLaterHalf) {
-      let avgWhoFive = document.getElementById("test-slider").value;
-      let a = Math.random;
-
-      let rgb = hexToRgb(color);
-      let avg = (rgb.r + rgb.g + rgb.b) / 3;
-      let rDiff = Math.abs(rgb.r - avg);
-      let gDiff = Math.abs(rgb.g - avg);
-      let bDiff = Math.abs(rgb.b - avg);
-      if (true) {
-        cello.play();
-        console.log("rg is greatest");
-      } else if (gbDiff >= rgDiff && gbDiff >= rbDiff) {
-        glacier.play();
-      } else {
-        tundra.play();
-      }
-    } else {
-      if (avgWhoFive > 50) {
-        console.log("Unmuted blurosti");
-        blurosti.volume = 1;
-        chords.volume = 0;
-      } else {
-        console.log("Unmuted chords");
-        blurosti.volume = 0;
-        chords.volume = 1;
-      }
-    }
-  }
-}
 
 function hexToRgb(hex) {
   var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -253,7 +229,7 @@ async function playRandomNotes() {
   console.log("playing a total of " + numNotes + " notes");
   for (let i = 0; i < numNotes; i++) {
     let index = Math.floor(Math.random() * randomSounds.length);
-    let delay = Math.random() * 1000 + 50;
+    let delay = Math.random() * 1000 + 100;
     randomSounds[index].play();
     console.log("playing note " + index + " and waiting for " + delay + "ms");
     await sleep(delay);

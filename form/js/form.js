@@ -29,6 +29,9 @@ document.querySelector("#submit-button").onclick = () => {
   let e = sliders[4].value;
   let text = textField.value;
   socket.emit("form to server", color, a, b, c, d, e, text);
+  panelIndex = 0;
+  panels[panelIndex].style.display = "flex";
+  randomizeForm();
   window.location.href = "../results/";
 };
 
