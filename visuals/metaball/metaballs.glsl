@@ -4,38 +4,37 @@ precision lowp float;
 
 uniform vec2[256] positions;
 uniform vec3[256] colors;
-uniform float radii[256];
+uniform vec4[256] traits;
 uniform uint numParts;
 
 in vec2 texCoord;
 
-out vec4 fragColor;
+out vec4 frag;
 
 void main(void) {
-    //    float f = 0.0;
-    //    uint iClosest = 0u;
-    //    float fClosest = 999999.0;
-    fragColor = vec4(0, 0, 0, 1);
     float powFalloff = 2.5;
     float powerSum = 0.0;
     for (uint i = 0u; i < numParts; i++)
     {
-        vec2 p = positions[i];
+        vec2 pos = positions[i];
+        vec4 trait = traits[i];
+        vec3 col = colors[i];
 
-        float rad = radii[i];
+        float rad = trait.x;
 
-        float dx = texCoord.x - positions[i].x;
-        float dy = texCoord.y - positions[i].y;
+        float dx = texCoord.x - pos.x;
+        float dy = texCoord.y - pos.y;
 
         float dist = sqrt(dx * dx + dy * dy);
+
         float power = pow(min(rad / dist, 1.0), powFalloff);
         powerSum += power;
 
-        fragColor += vec4((colors[i].rgb * power), 1.0);
+        frag += vec4((col.rgb * power), 1.0);
     }
 
-    float m = max(max(fragColor.r, fragColor.g), fragColor.b);
+    float m = max(max(frag.r, frag.g), frag.b);
 
-    fragColor = vec4(fragColor.rgb / m * floor(min(powerSum, 1.0)), 1.0);
+    frag = vec4(frag.rgb / m * floor(min(powerSum, 1.0)), 1.0);
 
 }

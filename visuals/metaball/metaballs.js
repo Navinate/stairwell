@@ -13,10 +13,10 @@ const idCanvHeight = gl.getUniformLocation(program, "canvHeight");
 gl.uniform1f(idCanvWidth, canvas.width);
 gl.uniform1f(idCanvHeight, canvas.height);
 
-const idPartPos = gl.getUniformLocation(program, "positions");
-const idColors = gl.getUniformLocation(program, "colors");
-const idRadii = gl.getUniformLocation(program, "radii");
 const idNumParts = gl.getUniformLocation(program, "numParts");
+const idPositions = gl.getUniformLocation(program, "positions");
+const idColors = gl.getUniformLocation(program, "colors");
+const idTraits = gl.getUniformLocation(program, "traits");
 
 /*** Particle data ***/
 let maxParticles = 256;
@@ -24,15 +24,19 @@ let maxParticles = 256;
 // particles aren't actually objects.
 // they're arrays instead to easily send to the gpu
 let particles = [];
-const posSize = 2;
-let positions = [];
-const velSize = 2;
-let velocities = [];
-let radii = [];
-const colorSize = 3;
-let colors = [];
 
-gl.uniform1fv(idRadii, radii);
+const vPositionSize = 2;
+let vPositions = [];
+
+const vVelocitySize = 2;
+let vVelocities = [];
+
+const vColorSize = 3;
+let vColors = [];
+
+const vTraitSize = 4;
+let vTraits = [];
+
 gl.uniform1ui(idNumParts, 0);
 
 // helper class for managing arrays sent to gpu
@@ -46,52 +50,46 @@ class Particle {
     this.index = particles.length;
 
     particles.push(this);
-
     gl.uniform1ui(idNumParts, particles.length);
-    // x
-    positions.push(Math.random() * canvas.width);
-    // y
-    positions.push(Math.random() * canvas.height);
 
+    // position
+    vPositions.push(Math.random() * canvas.width, Math.random() * canvas.height);
+
+    // velocity
     const fRandRad = Math.random() * Math.PI * 2;
-    // x velocity
-    velocities.push(Math.cos(fRandRad) * fSpeed);
-    // y vel
-    velocities.push(Math.sin(fRandRad) * fSpeed);
+    vVelocities.push(Math.cos(fRandRad) * fSpeed, Math.sin(fRandRad) * fSpeed);
 
-    // color r, g, & b
-    colors.push(fr);
-    colors.push(fg);
-    colors.push(fb);
+    // color
+    vColors.push(fr, fg, fb);
+    gl.uniform3fv(idColors, vColors);
 
-    gl.uniform3fv(idColors, colors);
-
-    // radius
-    radii.push(fRad);
-    gl.uniform1fv(idRadii, radii);
+    // traits (radius, tbd, tbd, tbd)
+    vTraits.push(fRad, 0.0, 0.0, 0.0);
+    gl.uniform4fv(idTraits, vTraits);
   }
 
   destroy() {
     // remove data from arrays
     particles.splice(this.index);
-    positions.splice(this.posIndex, posSize);
-    velocities.splice(this.velIndex, velSize);
-    radii.splice(this.index, 1);
-    colors.splice(this.colorIndex, colorSize);
+    vPositions.splice(this.index * vPositionSize, vPositionSize);
+    vVelocities.splice(this.index * vVelocitySize, vVelocitySize);
+    vColors.splice(this.index * vColors, vColorSize);
+    vTraits.splice(this.index * vTraitSize, vTraitSize);
 
     // update gpu data
     gl.uniform1ui(idNumParts, particles.length);
-    gl.uniform3fv(idColors, colors);
-    gl.uniform1fv(idRadii, radii);
+    gl.uniform2fv(idPositions, vPositions);
+    gl.uniform3fv(idColors, vColors);
+    gl.uniform4fv(idTraits, vTraits);
   }
 
   // position
   set x(f) {
-    positions[this.index * posSize] = f;
+    vPositions[this.index * vPositionSize] = f;
   }
 
   set y(f) {
-    positions[this.index * posSize + 1] = f;
+    vPositions[this.index * vPositionSize + 1] = f;
   }
 
   setPos(fx, fy) {
@@ -100,20 +98,20 @@ class Particle {
   }
 
   get x() {
-    return positions[this.index * posSize];
+    return vPositions[this.index * vPositionSize];
   }
 
   get y() {
-    return positions[this.index * posSize + 1]
+    return vPositions[this.index * vPositionSize + 1]
   }
 
   // velocity
   set vx(f) {
-    velocities[this.index * velSize] = f;
+    vVelocities[this.index * vVelocitySize] = f;
   }
 
   set vy(f) {
-    velocities[this.index * velSize + 1] = f;
+    vVelocities[this.index * vVelocitySize + 1] = f;
   }
 
   setVel(fvx, fvy) {
@@ -124,6 +122,29 @@ class Particle {
   velStep() {
     this.x += this.vx;
     this.y += this.vy;
+
+    // for(let i = 0; i < colliders.length; i++) {
+    //   let col = colliders[i];
+    //
+    //   let pastLeft = this.x > col.x;
+    //   let pastRight = this.x < col.x + col.w;
+    //
+    //   let pastTop = this.y > col.y;
+    //   let pastBottom = this.y < col.y + col.h;
+    //
+    //
+    //   let overlapX = pastLeft && pastRight;
+    //   let overlapY = pastTop && pastBottom;
+    //
+    //   if(overlapX && overlapY) {
+    //     if(overlapX  ) {
+    //
+    //     }
+    //
+    //     this.vx = Math.abs(this.vx) * Math.sign(this.x - (col.x + col.w / 2));
+    //     this.vy = Math.abs(this.vy) * Math.sign(this.y - (col.y + col.h / 2));
+    //   }
+    // }
 
     // constrain within screen
     if (this.x < 0) {
@@ -140,24 +161,24 @@ class Particle {
   }
 
   get vx() {
-    return velocities[this.index * velSize];
+    return vVelocities[this.index * vVelocitySize];
   }
 
   get vy() {
-    return velocities[this.index * velSize + 1]
+    return vVelocities[this.index * vVelocitySize + 1]
   }
 
   // color - don't forget to send updated colors to gpu if you change them!
   set r(fr) {
-    colors[this.index * colorSize] = fr;
+    vColors[this.index * vColorSize] = fr;
   }
 
   set g(fg) {
-    colors[this.index * colorSize + 1] = fg;
+    vColors[this.index * vColorSize + 1] = fg;
   }
 
   set b(fb) {
-    colors[this.index * colorSize + 2] = fb;
+    vColors[this.index * vColorSize + 2] = fb;
   }
 
   setColor(fr, fg, fb) {
@@ -167,26 +188,41 @@ class Particle {
   }
 
   get r() {
-    return colors[this.index * colorSize];
+    return vColors[this.index * vColorSize];
   }
 
   get g() {
-    return colors[this.index * colorSize + 1];
+    return vColors[this.index * vColorSize + 1];
   }
 
   get b() {
-    return colors[this.index * colorSize + 2];
+    return vColors[this.index * vColorSize + 2];
   }
 
   // radius - don't forget to send updated radii array to gpu!
   set radius(fr) {
-    radii[this.index] = fr;
+    vTraits[this.index * vTraitSize] = fr;
   }
 
   get radius() {
-    return radii[this.index];
+    return vTraits[this.index * vTraitSize];
   }
 }
+
+let colliders = [];
+
+class Collider {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+
+    colliders.push(this);
+  }
+}
+
+new Collider(100, 100, 800, 800);
 
 window.requestAnimationFrame(update);
 
@@ -222,7 +258,7 @@ function update() {
         jPart.vy += fNormY * fDotVel;
 
         // prevent stick by moving touching particles out of each other
-        const fOverlap = (fDist - (radii[i] + radii[j])) / 2;
+        const fOverlap = (fDist - (vTraits[i * vTraitSize] + vTraits[j * vTraitSize])) / 2;
         let fDisplaceX = fNormX * fOverlap;
         let fDisplaceY = fNormY * fOverlap;
 
@@ -235,7 +271,7 @@ function update() {
     }
   }
 
-  gl.uniform2fv(idPartPos, positions);
+  gl.uniform2fv(idPositions, vPositions);
 
   gl.drawArrays(gl.TRIANGLE_FAN, 0, 3);
 

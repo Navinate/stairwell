@@ -3,7 +3,7 @@
 // set max particles to 15
 maxParticles = 15;
 
-const socket = io();
+const socket = io("wss://navinate.com/");
 
 //simple hexcode to rgb method
 const hex2rgb = (hex) => {
