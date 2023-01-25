@@ -1,49 +1,66 @@
 <!DOCTYPE html>
 <html>
-  <head> </head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script defer src="js/form.js"></script>
+    <script src="../socket/socket.io.min.js"></script>
+    <link href="../styles/style.css" rel="stylesheet" />
+    <title>StairWELL Form</title>
+  </head>
   <body>
-    <p id="spot" style="font-size: 50pt">WAITING</p>
-    <button id="startButton" onclick="doRequest()">Start!</button>
-    <button class="button" style="font-size: 50pt; user-select: none">Vibrate</button>
-    <script>
-      var isMobile = /iPhone|iPod|iPad|Android|BlackBerry/.test(navigator.userAgent);
-
-      document.getElementById(".button").on("mousedown", function (e) {
-        navigator.vibrate(1000); // Infinity is a number
-      });
-
-      document.getElementById(".button").on(isMobile ? "touchend" : "mouseup", function (e) {
-        navigator.vibrate(0);
-      });
-
-      //credit for code below: Brian Ellis
-      var lastTime = Date.now();
-      function doRequest() {
-        if (typeof DeviceMotionEvent.requestPermission === "function") {
-          DeviceMotionEvent.requestPermission()
-            .then((permissionState) => {
-              if (permissionState === "granted") {
-                // window.addEventListener('devicemotion', $scope.updateXY, true);
-                window.addEventListener("deviceorientation", updateXY, true);
-              }
-            })
-            .catch(console.error);
-        } else {
-          window.addEventListener("deviceorientation", updateXY, true);
-        }
-      }
-
-      function updateXY(event) {
-        let newTime = Date.now();
-        if (newTime - lastTime < 300) {
-          return;
-        }
-        lastTime = newTime;
-        let alpha = event.alpha.toFixed(2);
-        document.getElementById("spot").innerHTML = alpha;
-      }
-
-      doRequest();
-    </script>
+    <div>
+      <header>
+        <h1>StairWELL Form</h1>
+      </header>
+      <main>
+          <div>
+            <label for="color" class="">Select a Color: </label>
+            <input id="color-field" name="color" type="color" value="#FF0000" />
+          </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="a"
+              class="slider"
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="b"
+              class="slider"
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="c"
+              class="slider"
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="d"
+              class="slider"
+            />
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value="50"
+              id="e"
+              class="slider"
+            />
+          </div>
+        <button id="submit-button" class="next-button">Submit</button>
+      </main>
+    </div>
   </body>
 </html>
