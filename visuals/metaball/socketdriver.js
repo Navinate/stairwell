@@ -19,5 +19,11 @@ socket.on("server to listener", (color, a, b, c, d, e) => {
     rgb = hex2rgb(color);
 
     // a/2+50 ranges between 50-100
-    new Particle(rgb.r / 255, rgb.g / 255, rgb.b / 255, 15 + a / 100 * 25 , (b - 50) / 50);
+    new Particle(
+      rgb.r / 255,
+      rgb.g / 255,
+      rgb.b / 255,
+      (a / 100) * 50 + 50,
+      (b / 100) * 2,
+      (c / 100) * 0.5);
 });

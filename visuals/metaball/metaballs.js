@@ -9,6 +9,7 @@ const idColors = gl.getUniformLocation(program, "colors");
 const idTraits = gl.getUniformLocation(program, "traits");
 
 /*** Particle data ***/
+
 let maxParticles = 256;
 
 // particles aren't actually objects.
@@ -40,7 +41,10 @@ class Particle {
     gl.uniform1ui(idNumParts, particles.length);
 
     // position
-    vPositions.push(Math.random() * canvas.width, Math.random() * canvas.height, 10);
+    let randOffset = function() { return Math.random() * 300 - 150 };
+    let randX = canvas.width / 4 + canvas.width / 2 * Math.round(Math.random()) + randOffset();
+    let randY = canvas.height / 2 + randOffset();
+    vPositions.push(randX, randY, 50);
 
     // velocity
     const fRandRad = Math.random() * Math.PI * 2;

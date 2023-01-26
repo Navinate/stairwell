@@ -17,8 +17,10 @@ function glCreateShader(source, type) {
   gl.deleteShader(shader);
 }
 
-let canvasX = 0;
-let canvasY = 0;
+let onClickX = 0;
+let onClickY = 0;
+let offClickX = 0;
+let offClickY = 0;
 
 function setupFullscreenShader(vertSrc, fragSrc) {
   const program = gl.createProgram();
@@ -41,21 +43,34 @@ function setupFullscreenShader(vertSrc, fragSrc) {
   gl.uniform1f(idCanvWidth, canvas.width);
   gl.uniform1f(idCanvHeight, canvas.height);
 
+
+
   onmousedown = (event) => {
-    if(event.ctrlKey) {
-      canvasX = event.clientX;
-      canvasY = event.clientY;
-      canvas.style.left = canvasX + 'px';
-      canvas.style.top = canvasY + 'px';
-    } else if(event.altKey) {
-      canvas.width = event.clientX - canvasX;
-      canvas.height = event.clientY - canvasY;
-    }
+    onClickX = event.clientX;
+    onClickY = event.clientY;
+    console.log('mouse on');
+    console.log(onClickX);
+  };
+
+  onmouseup = (event) => {
+
+    offClickX = event.clientX;
+    console.log('mouse off');
+    console.log(offClickX);
+    offClickY = event.clientY;
+
+    let x = Math.min(onClickX, offClickX);
+    let y = Math.min(onClickY, offClickY);
+
+    canvas.style.left = x + 'px';
+    canvas.style.top = y + 'px';
+    canvas.width = Math.max(onClickX, offClickX) - x;
+    canvas.height = Math.max(onClickY, offClickY) - y;
 
     gl.uniform1f(idCanvWidth, canvas.width);
     gl.uniform1f(idCanvHeight, canvas.height);
     gl.viewport(0, 0, canvas.width, canvas.height);
-  };
+  }
 
   // addEventListener("resize", (event) => {
   //   canvas.width = window.innerWidth;
