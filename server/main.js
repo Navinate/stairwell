@@ -29,6 +29,10 @@ async function init() {
         client.LPUSH("thoughts", text);
       }
     });
+    socket.on("gesture to server", (color, points) => {
+      let data = { color: color, points: points };
+      client.LPUSH("gestures", JSON.stringify(data));
+    });
   });
 
   //launch web server
@@ -36,11 +40,12 @@ async function init() {
 
   //init starting interval
   timer = setInterval(popData, maxInterval);
+
+  setInterval(popGestures, 1000);
 }
 
 async function popData() {
   let dataCount = await client.LLEN(redisKey);
-  console.log("data in server: " + dataCount + " -- interval: " + interval);
 
   if (dataCount > 0) {
     //grab data from database
@@ -59,6 +64,16 @@ async function popData() {
   clearInterval(timer);
   //create new timer
   timer = setInterval(popData, interval);
+}
+
+async function popGestures() {
+  let dataCount = await client.LLEN("gestures");
+  if (dataCount > 0) {
+    //grab data from database
+    let data = JSON.parse(await client.RPOP("gestures"));
+    //emit to clients
+    io.emit("server to gesture", data.color, data.points);
+  }
 }
 
 init();

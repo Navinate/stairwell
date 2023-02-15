@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="js/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+    <script src="../socket/socket.io.min.js"></script>
+    <style>
+      * {
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: darkslategray;
+      }
+      main {
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        width: 100vw;
+        height: 100vh;
+      }
+      .p5Canvas {
+        border-radius: 15px;
+      }
+
+      #picker {
+        padding-bottom: 40px;
+      }
+    </style>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <main><div id="picker"></div></main>
+    <script src="js/gesture.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
