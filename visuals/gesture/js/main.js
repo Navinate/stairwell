@@ -1,5 +1,5 @@
-const socket = io("ws://127.0.0.1:3000"); //LOCAL TESTING
-//const socket = io(); //LIVE SERVER
+//const socket = io("ws://127.0.0.1:3000"); //LOCAL TESTING
+const socket = io(); //LIVE SERVER
 console.log("connected to websocket");
 
 const caps = ["ROUND", "SQUARE", "PROJECT"];
