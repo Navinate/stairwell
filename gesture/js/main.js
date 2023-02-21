@@ -2,14 +2,14 @@
 const socket = io(); //LIVE SERVER
 console.log("connected to websocket");
 
+document.querySelectorAll("input").forEach((rb) => {
+  rb.style.backgroundColor = rb.value;
+});
+
 const caps = ["ROUND", "SQUARE", "PROJECT"];
 const joins = ["MITER", "BEVEL", "ROUND"];
 let gest;
 let cnv;
-
-let colorPicker = new window.iro.ColorPicker("#picker", {
-  width: 120,
-});
 
 function setup() {
   cnv = createCanvas(400, 400);
@@ -45,7 +45,7 @@ function mouseUpAndSendData() {
 }
 
 function sendData() {
-  let colorValue = colorPicker.color.hexString;
+  let colorValue = document.querySelector("input:checked").value;
   gest.normalizePoints();
   socket.emit("gesture to server", colorValue, gest.points);
 }

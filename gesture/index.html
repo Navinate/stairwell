@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <script src="js/p5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
     <script src="../socket/socket.io.min.js"></script>
     <style>
       * {
@@ -26,14 +25,44 @@
         border-radius: 15px;
       }
 
-      #picker {
-        padding-bottom: 40px;
+      #palette {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+        align-content: space-evenly;
+        width: 275px;
+        padding-bottom: 15px;
+      }
+
+      input[type="radio"] {
+        width: 75px;
+        height: 75px;
+        margin: 5px;
+        border: none;
+        appearance: none;
+        border-radius: 15px;
+        background-color: white;
+        transition-duration: 0.1s;
+        border: 3px #000000 solid;
+      }
+      input[type="radio"]:checked {
+        transform: scale(1.1);
+        border-width: 0px;
       }
     </style>
     <meta charset="utf-8" />
   </head>
   <body>
-    <main><div id="picker"></div></main>
+    <main>
+      <div id="palette">
+        <input type="radio" name="colors" value="#FF0000" />
+        <input type="radio" name="colors" value="#00FF00" />
+        <input type="radio" name="colors" value="#0000FF" />
+        <input type="radio" name="colors" value="#00FFFF" />
+        <input type="radio" name="colors" value="#FF00FF" />
+        <input type="radio" name="colors" value="#FFFF00" />
+      </div>
+    </main>
     <script src="js/gesture.js"></script>
     <script src="js/main.js"></script>
   </body>
